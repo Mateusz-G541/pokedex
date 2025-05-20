@@ -1,6 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
 import { setTimeout } from 'timers/promises';
-import { createServer } from 'http';
 
 declare global {
   let __SERVER__: ChildProcess;
