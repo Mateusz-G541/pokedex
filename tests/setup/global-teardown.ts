@@ -1,6 +1,12 @@
+import { ChildProcess } from 'child_process';
+
+declare global {
+  var __SERVER__: ChildProcess;
+}
+
 async function globalTeardown() {
   // Stop the server
-  const server = (global as any).__SERVER__;
+  const server = global.__SERVER__;
   if (server) {
     server.kill();
   }

@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+interface PokemonResponse {
+  name: string;
+  id: number;
+  types: Array<{ type: { name: string } }>;
+  sprites: {
+    front_default: string;
+  };
+}
+
 test.describe('Pokemon API', () => {
   test('GET /api/pokemon?type=fire&region=kanto returns Pokemon with correct type and region', async ({
     request,
@@ -93,5 +102,15 @@ test.describe('Pokemon API', () => {
     expect(response.status()).toBe(404);
     const data = await response.json();
     expect(data).toHaveProperty('error');
+  });
+
+  test('GET /api/pokemon/random-legendary returns Pokemon details', async ({ request }) => {
+    const response = await request.get('/api/pokemon/random-legendary');
+    expect(response.ok()).toBeTruthy();
+    const data = (await response.json()) as PokemonResponse;
+    expect(data.name).toBeDefined();
+    expect(data.id).toBeDefined();
+    expect(data.types).toBeDefined();
+    expect(data.sprites).toBeDefined();
   });
 });

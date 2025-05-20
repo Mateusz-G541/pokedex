@@ -1,4 +1,8 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
+
+declare global {
+  var __SERVER__: ChildProcess;
+}
 
 async function globalSetup() {
   // Start the server
@@ -17,7 +21,7 @@ async function globalSetup() {
   });
 
   // Store server process for cleanup
-  (global as any).__SERVER__ = server;
+  global.__SERVER__ = server;
 }
 
 export default globalSetup;
