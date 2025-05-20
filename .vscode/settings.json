@@ -1,0 +1,6 @@
+{
+  "playwright.configFile": "playwright.config.ts",
+  "playwright.testExplorer": {
+    "configFile": "playwright.config.ts"
+  }
+}
