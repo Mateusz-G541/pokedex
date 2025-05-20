@@ -7,9 +7,11 @@ declare global {
 
 async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
   let attempts = 0;
+  const host = process.env.CI ? '127.0.0.1' : 'localhost';
+
   while (attempts < maxAttempts) {
     try {
-      const response = await fetch(`http://localhost:${port}/api/pokemon/types`);
+      const response = await fetch(`http://${host}:${port}/api/pokemon/types`);
       if (response.ok) {
         return true;
       }
@@ -23,7 +25,8 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
 
 async function globalSetup() {
   const port = process.env.PORT || 3000;
-  console.log(`Starting server on port ${port}...`);
+  const host = process.env.CI ? '127.0.0.1' : 'localhost';
+  console.log(`Starting server on ${host}:${port}...`);
 
   // Start the server
   const server = spawn('npm', ['run', 'dev'], {
@@ -33,6 +36,7 @@ async function globalSetup() {
       ...process.env,
       PORT: port.toString(),
       NODE_ENV: 'test',
+      HOST: host,
     },
   });
 

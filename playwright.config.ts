@@ -1,5 +1,10 @@
 import { defineConfig } from '@playwright/test';
 
+// Get the base URL from environment or use default
+const baseURL = process.env.CI
+  ? 'http://127.0.0.1:3000' // Use IP instead of localhost in CI
+  : 'http://localhost:3000'; // Use localhost in local development
+
 export default defineConfig({
   testDir: './tests',
   timeout: 60000,
@@ -9,7 +14,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     actionTimeout: 30000,
     navigationTimeout: 30000,

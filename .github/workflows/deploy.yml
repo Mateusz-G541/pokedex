@@ -26,6 +26,8 @@ jobs:
         env:
           NODE_ENV: test
           PORT: 3000
+          CI: true
+          HOST: 127.0.0.1
         run: npm test
 
       - name: Install Frontend Dependencies
@@ -36,6 +38,7 @@ jobs:
         working-directory: ./frontend
         env:
           NODE_ENV: test
+          CI: true
         run: npm test
 
       - name: Install Vercel CLI
