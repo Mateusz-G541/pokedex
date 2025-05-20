@@ -5,29 +5,35 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import pokemonRoutes from './routes/pokemon.routes';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: envFile });
 
 const app = express();
 const port = process.env.PORT || 3000;
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Middleware
 app.use(
   cors({
-    origin: '*', // Allow all origins during development
+    origin: isDevelopment ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
     methods: ['GET'],
     credentials: true,
   }),
 );
+
+// Security headers
 app.use(helmet());
-app.use(express.json());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  message: { error: 'Too many requests, please try again later.' },
 });
+
 app.use(limiter);
+app.use(express.json());
 
 // Routes
 app.use('/api', pokemonRoutes);
@@ -35,10 +41,11 @@ app.use('/api', pokemonRoutes);
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  const errorMessage = isDevelopment ? err.message : 'Something went wrong!';
+  res.status(500).json({ error: errorMessage });
 });
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
 });

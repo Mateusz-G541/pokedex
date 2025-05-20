@@ -1,38 +1,61 @@
 import { spawn, ChildProcess } from 'child_process';
 import { setTimeout } from 'timers/promises';
+import { createServer } from 'http';
 
 declare global {
   let __SERVER__: ChildProcess;
 }
 
-async function globalSetup() {
-  // Start the server
-  const server = spawn('npm', ['run', 'dev'], {
-    stdio: 'inherit',
-    shell: true,
-  });
-
-  // Wait for server to start
-  let isServerReady = false;
-  const maxAttempts = 30; // 30 seconds timeout
+async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
   let attempts = 0;
-
-  while (!isServerReady && attempts < maxAttempts) {
+  while (attempts < maxAttempts) {
     try {
-      const response = await fetch('http://localhost:3000/api/pokemon/types');
+      const response = await fetch(`http://localhost:${port}/api/pokemon/types`);
       if (response.ok) {
-        isServerReady = true;
-        console.log('Server is ready!');
+        return true;
       }
     } catch (error) {
       attempts++;
-      await setTimeout(1000); // Wait 1 second between attempts
+      await setTimeout(1000);
     }
   }
+  return false;
+}
+
+async function globalSetup() {
+  const port = process.env.PORT || 3000;
+  console.log(`Starting server on port ${port}...`);
+
+  // Start the server
+  const server = spawn('npm', ['run', 'dev'], {
+    stdio: 'pipe',
+    shell: true,
+    env: {
+      ...process.env,
+      PORT: port.toString(),
+      NODE_ENV: 'test',
+    },
+  });
+
+  // Log server output
+  server.stdout?.on('data', (data) => {
+    console.log(`Server stdout: ${data}`);
+  });
+
+  server.stderr?.on('data', (data) => {
+    console.error(`Server stderr: ${data}`);
+  });
+
+  // Wait for server to start
+  const isServerReady = await waitForServer(parseInt(port), 30);
 
   if (!isServerReady) {
+    console.error('Server failed to start. Logs:');
+    server.kill();
     throw new Error('Server failed to start within the timeout period');
   }
+
+  console.log('Server is ready!');
 
   // Store server process for cleanup
   global.__SERVER__ = server;
