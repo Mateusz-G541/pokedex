@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Add this console log to help debug the API URL
+console.log('API URL:', API_URL);
 
 interface Ability {
   ability: {
@@ -67,6 +70,35 @@ function App() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [description, setDescription] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Fetch suggestions when search term changes
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchTerm.length >= 3) {
+        try {
+          console.log('Fetching suggestions for:', searchTerm);
+          const response = await axios.get(
+            `${API_URL}/api/pokemon/suggestions?query=${searchTerm}`,
+          );
+          console.log('Received suggestions:', response.data);
+          setSuggestions(response.data);
+          setShowSuggestions(true);
+        } catch (err) {
+          console.error('Error fetching suggestions:', err);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
   const fetchPokemon = async (search: string | number) => {
     try {
@@ -102,6 +134,28 @@ function App() {
     fetchPokemon(randomId);
   };
 
+  const handleRandomLegendary = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await axios.get(`${API_URL}/api/pokemon/random/legendary`);
+      setPokemon(response.data);
+
+      // Fetch description
+      const speciesResponse = await axios.get(response.data.species.url);
+      const flavorText = speciesResponse.data.flavor_text_entries.find(
+        (entry: any) => entry.language.name === 'en',
+      );
+      setDescription(flavorText?.flavor_text || 'No description available.');
+    } catch (err) {
+      setError('Failed to fetch legendary Pokemon. Please try again.');
+      setPokemon(null);
+      setDescription('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePrevious = () => {
     if (pokemon && pokemon.id > 1) {
       const prevId = pokemon.id - 1;
@@ -118,19 +172,43 @@ function App() {
     }
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchTerm(suggestion);
+    setShowSuggestions(false);
+    fetchPokemon(suggestion);
+  };
+
   return (
     <div className="container">
       <h1>Pokédex</h1>
       <div className="search-container">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by name or ID..."
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-        />
+        <div className="search-input-container">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name or ID..."
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            onFocus={() => searchTerm.length >= 3 && setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          />
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="suggestions-container">
+              {suggestions.map((suggestion) => (
+                <div
+                  key={suggestion}
+                  className="suggestion-item"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <button onClick={handleSearch}>Search</button>
         <button onClick={handleRandom}>Random</button>
+        <button onClick={handleRandomLegendary}>Random Legendary</button>
       </div>
       {error && <div className="error">{error}</div>}
       {loading && <div className="loading">Loading...</div>}

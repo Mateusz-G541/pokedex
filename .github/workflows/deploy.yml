@@ -1,0 +1,52 @@
+name: Deploy Pokedex
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Backend Dependencies
+        run: npm install
+
+      - name: Run Backend Tests
+        run: npm test
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy Backend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+      - name: Deploy Frontend
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes

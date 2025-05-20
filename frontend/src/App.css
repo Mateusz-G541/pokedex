@@ -38,6 +38,11 @@ h1 {
   gap: 0.5rem;
 }
 
+.search-input-container {
+  position: relative;
+  width: 200px;
+}
+
 input {
   padding: 0.5rem 1rem;
   font-size: 1rem;
@@ -227,4 +232,29 @@ button:disabled {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.suggestions-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #2c3e50;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
 }

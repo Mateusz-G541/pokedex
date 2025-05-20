@@ -81,4 +81,33 @@ export class PokemonController {
       res.status(500).json({ error: 'Failed to fetch regions' });
     }
   }
+
+  async getRandomLegendaryPokemon(req: Request, res: Response): Promise<void> {
+    try {
+      const pokemon = await this.pokemonService.getRandomLegendaryPokemon();
+      res.json(pokemon);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch random legendary Pokemon' });
+    }
+  }
+
+  async getPokemonSuggestions(req: Request, res: Response): Promise<void> {
+    try {
+      const { query } = req.query;
+      console.log('Received suggestion request with query:', query);
+
+      if (!query) {
+        console.log('No query parameter provided');
+        res.status(400).json({ error: 'Query parameter is required' });
+        return;
+      }
+
+      const suggestions = await this.pokemonService.getPokemonSuggestions(query as string);
+      console.log('Sending suggestions:', suggestions);
+      res.json(suggestions);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      res.status(500).json({ error: 'Failed to fetch Pokemon suggestions' });
+    }
+  }
 }

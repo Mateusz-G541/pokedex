@@ -16,6 +16,15 @@ router.get('/pokemon/compare', pokemonController.comparePokemon.bind(pokemonCont
 // Get Pokemon by type and region
 router.get('/pokemon', pokemonController.getPokemonByTypeAndRegion.bind(pokemonController));
 
+// Get random legendary Pokemon
+router.get(
+  '/pokemon/random/legendary',
+  pokemonController.getRandomLegendaryPokemon.bind(pokemonController),
+);
+
+// Get Pokemon suggestions
+router.get('/pokemon/suggestions', pokemonController.getPokemonSuggestions.bind(pokemonController));
+
 // Get Pokemon evolution chain
 router.get(
   '/pokemon/:name/evolution',
