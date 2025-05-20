@@ -11,9 +11,9 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "playwright test",
-    "test:manual": "playwright test --config=playwright.config.ts",
-    "test:api": "playwright test tests/api/",
+    "test": "NODE_ENV=test playwright test",
+    "test:manual": "NODE_ENV=test playwright test --config=playwright.config.ts",
+    "test:api": "NODE_ENV=test playwright test tests/api/",
     "dev:all": "concurrently \"npm run dev:safe\" \"cd frontend && npm run dev\""
   },
   "dependencies": {

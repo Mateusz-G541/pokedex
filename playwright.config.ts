@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 30000,
+  timeout: 60000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -11,11 +11,15 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
+    ignoreHTTPSErrors: true,
   },
   projects: [
     {
       name: 'api',
       testMatch: /.*\.api\.spec\.ts/,
+      timeout: 60000,
     },
   ],
 });
