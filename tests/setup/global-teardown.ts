@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process';
 
 declare global {
-  var __SERVER__: ChildProcess;
+  let __SERVER__: ChildProcess;
 }
 
 async function globalTeardown() {

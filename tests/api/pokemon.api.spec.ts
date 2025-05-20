@@ -9,6 +9,12 @@ interface PokemonResponse {
   };
 }
 
+interface PokemonType {
+  type: {
+    name: string;
+  };
+}
+
 test.describe('Pokemon API', () => {
   test('GET /api/pokemon?type=fire&region=kanto returns Pokemon with correct type and region', async ({
     request,
@@ -19,7 +25,7 @@ test.describe('Pokemon API', () => {
     expect(Array.isArray(data)).toBeTruthy();
     expect(data.length).toBeGreaterThan(0);
     data.forEach((pokemon) => {
-      expect(pokemon.types.some((t: any) => t.type.name === 'fire')).toBeTruthy();
+      expect(pokemon.types.some((t: PokemonType) => t.type.name === 'fire')).toBeTruthy();
       expect(pokemon.id).toBeGreaterThanOrEqual(1);
       expect(pokemon.id).toBeLessThanOrEqual(151);
     });
