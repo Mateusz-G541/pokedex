@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 // Get the API URL from environment variables, fallback to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
