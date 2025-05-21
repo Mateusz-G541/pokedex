@@ -30,6 +30,13 @@ axios.interceptors.response.use(
   },
 );
 
+// Define tabs for navigation
+enum Tab {
+  POKEDEX = 'pokedex',
+  TEAM = 'team',
+  FAVORITES = 'favorites',
+}
+
 interface Ability {
   ability: {
     name: string;
@@ -96,6 +103,9 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [team, setTeam] = useState<Pokemon[]>([]);
   const [teamMessage, setTeamMessage] = useState('');
+  const [favorites, setFavorites] = useState<Pokemon[]>([]);
+  const [favoriteMessage, setFavoriteMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.POKEDEX);
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -137,6 +147,23 @@ function App() {
         setTeam(JSON.parse(savedTeam));
       } catch (e) {
         console.error('Error parsing saved team:', e);
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('pokemonFavorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  // Load favorites from localStorage on initial render
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('pokemonFavorites');
+    if (savedFavorites) {
+      try {
+        setFavorites(JSON.parse(savedFavorites));
+      } catch (e) {
+        console.error('Error parsing saved favorites:', e);
       }
     }
   }, []);
@@ -264,147 +291,312 @@ function App() {
     }
   };
 
+  const addToFavorites = () => {
+    if (!pokemon) return;
+
+    // Check if Pokemon is already in favorites
+    if (favorites.some((p) => p.id === pokemon.id)) {
+      setFavoriteMessage('This Pokémon is already in your favorites!');
+      setTimeout(() => setFavoriteMessage(''), 3000);
+      return;
+    }
+
+    // Add Pokemon to favorites
+    setFavorites([...favorites, pokemon]);
+    setFavoriteMessage(`${pokemon.name} added to your favorites!`);
+    setTimeout(() => setFavoriteMessage(''), 3000);
+  };
+
+  const removeFromFavorites = (id: number) => {
+    setFavorites(favorites.filter((p) => p.id !== id));
+    setFavoriteMessage('Pokémon removed from your favorites.');
+    setTimeout(() => setFavoriteMessage(''), 3000);
+  };
+
+  const clearFavorites = () => {
+    if (favorites.length === 0) return;
+
+    if (confirm('Are you sure you want to clear all your favorites?')) {
+      setFavorites([]);
+      setFavoriteMessage('Your favorites have been cleared.');
+      setTimeout(() => setFavoriteMessage(''), 3000);
+    }
+  };
+
+  const isPokemonFavorite = (id: number) => {
+    return favorites.some((p) => p.id === id);
+  };
+
+  const viewPokemonDetails = (pokemon: Pokemon) => {
+    setSearchTerm(pokemon.name);
+    setPokemon(pokemon);
+    setActiveTab(Tab.POKEDEX);
+
+    // Fetch description for the pokemon
+    const fetchDescription = async () => {
+      try {
+        const speciesResponse = await axios.get(pokemon.species.url);
+        const flavorText = speciesResponse.data.flavor_text_entries.find(
+          (entry: any) => entry.language.name === 'en',
+        );
+        setDescription(flavorText?.flavor_text || 'No description available.');
+      } catch (err) {
+        console.error('Error fetching description:', err);
+        setDescription('No description available.');
+      }
+    };
+
+    fetchDescription();
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case Tab.POKEDEX:
+        return (
+          <>
+            <div className="search-container">
+              <div className="search-input-container">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name or ID..."
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onFocus={() => searchTerm.length >= 3 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                />
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="suggestions-container">
+                    {suggestions.map((suggestion) => (
+                      <div
+                        key={suggestion}
+                        className="suggestion-item"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button onClick={handleSearch}>Search</button>
+              <button onClick={handleRandom}>Random</button>
+              <button onClick={handleRandomLegendary}>Legendary</button>
+            </div>
+
+            {error && <div className="error">{error}</div>}
+            {loading && <div className="loading">Loading...</div>}
+            {pokemon && (
+              <div className="pokemon-card">
+                <div className="pokemon-image">
+                  <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+                </div>
+                <h2>{pokemon.name}</h2>
+                <div className="pokemon-types">
+                  {pokemon.types.map((type) => (
+                    <span
+                      key={type.type.name}
+                      className="type-badge"
+                      style={{ backgroundColor: typeColors[type.type.name] }}
+                    >
+                      {type.type.name}
+                    </span>
+                  ))}
+                </div>
+                <div className="action-buttons">
+                  <button className="add-to-team" onClick={addToTeam}>
+                    Add to Team
+                  </button>
+                  {isPokemonFavorite(pokemon.id) ? (
+                    <button
+                      className="remove-favorite"
+                      onClick={() => removeFromFavorites(pokemon.id)}
+                    >
+                      Remove from Favorites
+                    </button>
+                  ) : (
+                    <button className="add-to-favorites" onClick={addToFavorites}>
+                      Add to Favorites
+                    </button>
+                  )}
+                </div>
+                <div className="pokemon-details">
+                  <p>
+                    <strong>ID:</strong> #{pokemon.id}
+                  </p>
+                  <p>
+                    <strong>Height:</strong> {pokemon.height / 10}m
+                  </p>
+                  <p>
+                    <strong>Weight:</strong> {pokemon.weight / 10}kg
+                  </p>
+                  <p>
+                    <strong>Abilities:</strong>{' '}
+                    {pokemon.abilities.map((a) => a.ability.name).join(', ')}
+                  </p>
+                  <div className="stats-container">
+                    <h3>Base Stats</h3>
+                    {pokemon.stats.map((stat) => (
+                      <div key={stat.stat.name} className="stat-bar">
+                        <span className="stat-name">{stat.stat.name}:</span>
+                        <div className="stat-bar-container">
+                          <div
+                            className="stat-bar-fill"
+                            style={{ width: `${(stat.base_stat / 255) * 100}%` }}
+                          />
+                        </div>
+                        <span className="stat-value">{stat.base_stat}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="description">
+                    <h3>Description</h3>
+                    <p>{description}</p>
+                  </div>
+                </div>
+                <div className="navigation-buttons">
+                  <button onClick={handlePrevious} disabled={pokemon.id <= 1}>
+                    Previous
+                  </button>
+                  <button onClick={handleNext} disabled={pokemon.id >= 898}>
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        );
+
+      case Tab.TEAM:
+        return (
+          <div className="team-section">
+            <h2>My Team ({team.length}/6)</h2>
+            {teamMessage && <div className="team-message">{teamMessage}</div>}
+
+            <div className="team-container">
+              {team.length === 0 ? (
+                <p className="empty-team">Your team is empty. Add Pokémon to your team!</p>
+              ) : (
+                <>
+                  <div className="team-grid">
+                    {team.map((teamPokemon) => (
+                      <div key={teamPokemon.id} className="team-pokemon">
+                        <img
+                          src={teamPokemon.sprites.front_default}
+                          alt={teamPokemon.name}
+                          onClick={() => viewPokemonDetails(teamPokemon)}
+                          className="clickable-pokemon"
+                        />
+                        <p>{teamPokemon.name}</p>
+                        <div className="team-pokemon-types">
+                          {teamPokemon.types.map((type) => (
+                            <span
+                              key={type.type.name}
+                              className="team-type-badge"
+                              style={{ backgroundColor: typeColors[type.type.name] }}
+                            >
+                              {type.type.name}
+                            </span>
+                          ))}
+                        </div>
+                        <button
+                          className="remove-pokemon"
+                          onClick={() => removeFromTeam(teamPokemon.id)}
+                        >
+                          Release
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="clear-team" onClick={clearTeam}>
+                    Release All
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        );
+
+      case Tab.FAVORITES:
+        return (
+          <div className="favorites-section">
+            <h2>My Favorites ({favorites.length})</h2>
+            {favoriteMessage && <div className="favorite-message">{favoriteMessage}</div>}
+
+            <div className="favorites-container">
+              {favorites.length === 0 ? (
+                <p className="empty-favorites">
+                  Your favorites list is empty. Add Pokémon to your favorites!
+                </p>
+              ) : (
+                <>
+                  <div className="favorites-grid">
+                    {favorites.map((favoritePokemon) => (
+                      <div key={favoritePokemon.id} className="favorite-pokemon">
+                        <img
+                          src={favoritePokemon.sprites.front_default}
+                          alt={favoritePokemon.name}
+                          onClick={() => viewPokemonDetails(favoritePokemon)}
+                          className="clickable-pokemon"
+                        />
+                        <p>{favoritePokemon.name}</p>
+                        <div className="favorite-pokemon-types">
+                          {favoritePokemon.types.map((type) => (
+                            <span
+                              key={type.type.name}
+                              className="favorite-type-badge"
+                              style={{ backgroundColor: typeColors[type.type.name] }}
+                            >
+                              {type.type.name}
+                            </span>
+                          ))}
+                        </div>
+                        <button
+                          className="remove-favorite"
+                          onClick={() => removeFromFavorites(favoritePokemon.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="clear-favorites" onClick={clearFavorites}>
+                    Clear All
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="container">
       <h1>Pokédex</h1>
-      <div className="search-container">
-        <div className="search-input-container">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name or ID..."
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            onFocus={() => searchTerm.length >= 3 && setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          />
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="suggestions-container">
-              {suggestions.map((suggestion) => (
-                <div
-                  key={suggestion}
-                  className="suggestion-item"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <button onClick={handleSearch}>Search</button>
-        <button onClick={handleRandom}>Random</button>
-        <button onClick={handleRandomLegendary}>Legendary</button>
+
+      <div className="tabs">
+        <button
+          className={`tab ${activeTab === Tab.POKEDEX ? 'active' : ''}`}
+          onClick={() => setActiveTab(Tab.POKEDEX)}
+        >
+          Pokédex
+        </button>
+        <button
+          className={`tab ${activeTab === Tab.TEAM ? 'active' : ''}`}
+          onClick={() => setActiveTab(Tab.TEAM)}
+        >
+          Team ({team.length})
+        </button>
+        <button
+          className={`tab ${activeTab === Tab.FAVORITES ? 'active' : ''}`}
+          onClick={() => setActiveTab(Tab.FAVORITES)}
+        >
+          Favorites ({favorites.length})
+        </button>
       </div>
 
-      {/* Team Section */}
-      <div className="team-section">
-        <h2>My Team ({team.length}/6)</h2>
-        {teamMessage && <div className="team-message">{teamMessage}</div>}
-
-        <div className="team-container">
-          {team.length === 0 ? (
-            <p className="empty-team">Your team is empty. Add Pokémon to your team!</p>
-          ) : (
-            <>
-              <div className="team-grid">
-                {team.map((teamPokemon) => (
-                  <div key={teamPokemon.id} className="team-pokemon">
-                    <img src={teamPokemon.sprites.front_default} alt={teamPokemon.name} />
-                    <p>{teamPokemon.name}</p>
-                    <div className="team-pokemon-types">
-                      {teamPokemon.types.map((type) => (
-                        <span
-                          key={type.type.name}
-                          className="team-type-badge"
-                          style={{ backgroundColor: typeColors[type.type.name] }}
-                        >
-                          {type.type.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      className="remove-pokemon"
-                      onClick={() => removeFromTeam(teamPokemon.id)}
-                    >
-                      Release
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button className="clear-team" onClick={clearTeam}>
-                Release All
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {error && <div className="error">{error}</div>}
-      {loading && <div className="loading">Loading...</div>}
-      {pokemon && (
-        <div className="pokemon-card">
-          <div className="pokemon-image">
-            <img src={pokemon.sprites.front_default} alt={pokemon.name} />
-          </div>
-          <h2>{pokemon.name}</h2>
-          <div className="pokemon-types">
-            {pokemon.types.map((type) => (
-              <span
-                key={type.type.name}
-                className="type-badge"
-                style={{ backgroundColor: typeColors[type.type.name] }}
-              >
-                {type.type.name}
-              </span>
-            ))}
-          </div>
-          <button className="add-to-team" onClick={addToTeam}>
-            Add to Team
-          </button>
-          <div className="pokemon-details">
-            <p>
-              <strong>ID:</strong> #{pokemon.id}
-            </p>
-            <p>
-              <strong>Height:</strong> {pokemon.height / 10}m
-            </p>
-            <p>
-              <strong>Weight:</strong> {pokemon.weight / 10}kg
-            </p>
-            <p>
-              <strong>Abilities:</strong> {pokemon.abilities.map((a) => a.ability.name).join(', ')}
-            </p>
-            <div className="stats-container">
-              <h3>Base Stats</h3>
-              {pokemon.stats.map((stat) => (
-                <div key={stat.stat.name} className="stat-bar">
-                  <span className="stat-name">{stat.stat.name}:</span>
-                  <div className="stat-bar-container">
-                    <div
-                      className="stat-bar-fill"
-                      style={{ width: `${(stat.base_stat / 255) * 100}%` }}
-                    />
-                  </div>
-                  <span className="stat-value">{stat.base_stat}</span>
-                </div>
-              ))}
-            </div>
-            <div className="description">
-              <h3>Description</h3>
-              <p>{description}</p>
-            </div>
-          </div>
-          <div className="navigation-buttons">
-            <button onClick={handlePrevious} disabled={pokemon.id <= 1}>
-              Previous
-            </button>
-            <button onClick={handleNext} disabled={pokemon.id >= 898}>
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      {renderTabContent()}
     </div>
   );
 }
