@@ -11,6 +11,7 @@ dotenv.config({ path: envFile });
 
 const app = express();
 const port = process.env.PORT || 3000;
+const host = process.env.HOST || '0.0.0.0';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Middleware
@@ -46,6 +47,8 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 });
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
+app.listen(port, host, () => {
+  console.log(
+    `Server is running in ${process.env.NODE_ENV || 'development'} mode on ${host}:${port}`,
+  );
 });

@@ -7,7 +7,7 @@ declare global {
 
 async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
   let attempts = 0;
-  const host = process.env.CI ? '127.0.0.1' : 'localhost';
+  const host = '127.0.0.1';
 
   while (attempts < maxAttempts) {
     try {
@@ -25,10 +25,9 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
 
 async function globalSetup() {
   const port = process.env.PORT || 3000;
-  const host = process.env.CI ? '127.0.0.1' : 'localhost';
-  console.log(`Starting server on ${host}:${port}...`);
+  console.log(`Starting server on port ${port}...`);
 
-  // Start the server
+  // Start the server with explicit host binding
   const server = spawn('npm', ['run', 'dev'], {
     stdio: 'pipe',
     shell: true,
@@ -36,7 +35,7 @@ async function globalSetup() {
       ...process.env,
       PORT: port.toString(),
       NODE_ENV: 'test',
-      HOST: host,
+      HOST: '0.0.0.0', // Bind to all network interfaces
     },
   });
 
