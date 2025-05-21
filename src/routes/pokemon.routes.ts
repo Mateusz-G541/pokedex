@@ -16,14 +16,14 @@ router.get('/pokemon/compare', pokemonController.comparePokemon.bind(pokemonCont
 // Get Pokemon by type and region
 router.get('/pokemon', pokemonController.getPokemonByTypeAndRegion.bind(pokemonController));
 
+// Get Pokemon suggestions
+router.get('/pokemon/suggestions', pokemonController.getPokemonSuggestions.bind(pokemonController));
+
 // Get random legendary Pokemon
 router.get(
   '/pokemon/random-legendary',
   pokemonController.getRandomLegendaryPokemon.bind(pokemonController),
 );
-
-// Get Pokemon suggestions
-router.get('/pokemon/suggestions', pokemonController.getPokemonSuggestions.bind(pokemonController));
 
 // Get Pokemon evolution chain
 router.get(
@@ -31,7 +31,7 @@ router.get(
   pokemonController.getPokemonEvolution.bind(pokemonController),
 );
 
-// Get Pokemon by name
+// Get Pokemon by name (this should be last as it's a catch-all route)
 router.get('/pokemon/:name', pokemonController.getPokemonByName.bind(pokemonController));
 
 export default router;
