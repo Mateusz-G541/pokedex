@@ -22,12 +22,33 @@ jobs:
       - name: Install Backend Dependencies
         run: npm install
 
+      - name: Start API Server
+        env:
+          NODE_ENV: test
+          PORT: 3000
+          HOST: 0.0.0.0
+        run: |
+          npm run dev &
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:3000/api/pokemon/types > /dev/null; then
+              echo "Server is ready!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Server failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
       - name: Run Backend Tests
         env:
           NODE_ENV: test
           PORT: 3000
           CI: true
           HOST: 127.0.0.1
+          API_URL: http://127.0.0.1:3000
         run: npm test
 
       - name: Install Frontend Dependencies
