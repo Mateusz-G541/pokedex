@@ -32,20 +32,40 @@ jobs:
           CI: true
           HOST: 127.0.0.1
         run: |
+          # Kill any existing process on port 3000
+          npx kill-port 3000 || true
+
           # Start the server in development mode
           NODE_ENV=development ts-node-dev --transpile-only src/index.ts &
           SERVER_PID=$!
 
-          # Wait for the server to be ready
-          npx wait-on http://127.0.0.1:3000
+          # Wait for the server to be ready with retries
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:3000/api/health > /dev/null; then
+              echo "Server is ready!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Server failed to start after 30 seconds"
+              exit 1
+            fi
+            echo "Waiting for server... attempt $i"
+            sleep 1
+          done
 
           # Run the tests
+          echo "Running tests..."
           npm run test:api
+          TEST_EXIT_CODE=$?
 
           # Kill the server process
+          echo "Cleaning up..."
           kill $SERVER_PID || true
-          # Ensure no process is left running on port 3000
           npx kill-port 3000 || true
+
+          # Exit with the test status
+          exit $TEST_EXIT_CODE
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
