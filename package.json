@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "NODE_ENV=test playwright test",
+    "test": "NODE_ENV=test concurrently \"npm run dev\" \"wait-on http://127.0.0.1:3000 && playwright test\"",
     "test:manual": "NODE_ENV=test playwright test --config=playwright.config.ts",
     "test:api": "NODE_ENV=test playwright test tests/api/",
     "dev:all": "concurrently \"npm run dev:safe\" \"cd frontend && npm run dev\""
@@ -38,6 +38,7 @@
     "kill-port": "^2.0.1",
     "prettier": "^3.2.5",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wait-on": "^7.2.0"
   }
 }
