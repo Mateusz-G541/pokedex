@@ -22,75 +22,13 @@ jobs:
       - name: Install Backend Dependencies
         run: npm install
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Build Backend
-        run: npm run build
-
-      - name: Start API Server
-        env:
-          NODE_ENV: test
-          PORT: 3000
-          HOST: 0.0.0.0
-        run: |
-          # Start the server in the background with full logging
-          echo "Starting server..."
-          npm run dev > server.log 2>&1 &
-          SERVER_PID=$!
-
-          # Function to check if server is running
-          check_server() {
-            curl -s http://127.0.0.1:3000/api/pokemon/types > /dev/null
-            return $?
-          }
-
-          # Wait for server to start with detailed logging
-          echo "Waiting for server to start..."
-          for i in {1..30}; do
-            echo "Attempt $i to connect to server..."
-            if check_server; then
-              echo "Server is ready!"
-              echo "Server logs:"
-              cat server.log
-              break
-            fi
-            
-            if [ $i -eq 30 ]; then
-              echo "Server failed to start after 30 attempts"
-              echo "Server logs:"
-              cat server.log
-              echo "Checking if server process is running:"
-              ps aux | grep node
-              echo "Checking if port 3000 is in use:"
-              netstat -tulpn | grep 3000
-              kill $SERVER_PID
-              exit 1
-            fi
-            
-            echo "Server not ready yet, waiting..."
-            sleep 1
-          done
-
       - name: Run Backend Tests
         env:
           NODE_ENV: test
           PORT: 3000
           CI: true
           HOST: 127.0.0.1
-          API_URL: http://127.0.0.1:3000
-        run: |
-          echo "Running tests..."
-          npm run test:api
-          TEST_EXIT_CODE=$?
-          echo "Tests completed with exit code: $TEST_EXIT_CODE"
-
-          # Kill the server after tests
-          echo "Stopping server..."
-          kill $SERVER_PID
-
-          # Exit with test status
-          exit $TEST_EXIT_CODE
+        run: npm test
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend

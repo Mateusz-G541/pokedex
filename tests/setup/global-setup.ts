@@ -1,8 +1,9 @@
 import { spawn, ChildProcess } from 'child_process';
 import { setTimeout } from 'timers/promises';
 
-// Store server process
-let serverProcess: ChildProcess | undefined;
+declare global {
+  let __SERVER__: ChildProcess;
+}
 
 async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
   let attempts = 0;
@@ -23,11 +24,11 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
 }
 
 async function globalSetup() {
-  const port = parseInt(process.env.PORT || '3000', 10);
+  const port = process.env.PORT || 3000;
   console.log(`Starting server on port ${port}...`);
 
   // Start the server with explicit host binding
-  serverProcess = spawn('npm', ['run', 'dev'], {
+  const server = spawn('npm', ['run', 'dev'], {
     stdio: 'pipe',
     shell: true,
     env: {
@@ -39,24 +40,27 @@ async function globalSetup() {
   });
 
   // Log server output
-  serverProcess.stdout?.on('data', (data) => {
+  server.stdout?.on('data', (data) => {
     console.log(`Server stdout: ${data}`);
   });
 
-  serverProcess.stderr?.on('data', (data) => {
+  server.stderr?.on('data', (data) => {
     console.error(`Server stderr: ${data}`);
   });
 
   // Wait for server to start
-  const isServerReady = await waitForServer(port, 30);
+  const isServerReady = await waitForServer(parseInt(port), 30);
 
   if (!isServerReady) {
     console.error('Server failed to start. Logs:');
-    serverProcess.kill();
+    server.kill();
     throw new Error('Server failed to start within the timeout period');
   }
 
   console.log('Server is ready!');
+
+  // Store server process for cleanup
+  global.__SERVER__ = server;
 }
 
 export default globalSetup;

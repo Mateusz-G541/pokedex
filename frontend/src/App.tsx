@@ -138,7 +138,7 @@ function App() {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get(`${API_URL}/api/pokemon/random-legendary`);
+      const response = await axios.get(`${API_URL}/api/pokemon/random/legendary`);
       setPokemon(response.data);
 
       // Fetch description

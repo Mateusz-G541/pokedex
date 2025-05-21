@@ -1,11 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
 // Get the base URL from environment or use default
-const baseURL =
-  process.env.API_URL ||
-  (process.env.CI
-    ? 'http://127.0.0.1:3000' // Use IP instead of localhost in CI
-    : 'http://localhost:3000'); // Use localhost in local development
+const baseURL = process.env.CI
+  ? 'http://127.0.0.1:3000' // Use IP instead of localhost in CI
+  : 'http://localhost:3000'; // Use localhost in local development
 
 export default defineConfig({
   testDir: './tests',
