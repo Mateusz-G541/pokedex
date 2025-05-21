@@ -32,17 +32,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Start API Server
-        run: npm start &
-        env:
-          NODE_ENV: test
-
-      - name: Wait for API Server to be ready
-        run: npx wait-on http://127.0.0.1:3000
-
-      - name: Check if server is running
-        run: curl -v http://127.0.0.1:3000 || true
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
