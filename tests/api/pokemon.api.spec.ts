@@ -111,12 +111,23 @@ test.describe('Pokemon API', () => {
   });
 
   test('GET /api/pokemon/random-legendary returns Pokemon details', async ({ request }) => {
-    const response = await request.get('/api/pokemon/random-legendary');
+    const response = await request.get('/api/pokemon/random/legendary');
     expect(response.ok()).toBeTruthy();
     const data = (await response.json()) as PokemonResponse;
+
+    // Verify basic Pokemon structure
     expect(data.name).toBeDefined();
     expect(data.id).toBeDefined();
     expect(data.types).toBeDefined();
     expect(data.sprites).toBeDefined();
+
+    // Verify that the Pokemon is legendary
+    const legendaryIds = [
+      144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 377, 378, 379, 380, 381, 382, 383, 384,
+      385, 386, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 643, 644,
+      646, 716, 717, 718, 719, 720, 721, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796,
+      797, 798, 799, 800, 801, 802, 888, 889, 890, 891, 892, 893, 894, 895, 896, 897, 898,
+    ];
+    expect(legendaryIds).toContain(data.id);
   });
 });
