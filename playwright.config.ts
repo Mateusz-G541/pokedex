@@ -27,4 +27,5 @@ export default defineConfig({
       timeout: 60000,
     },
   ],
+  globalSetup: require.resolve('./tests/setup/global-setup.ts'),
 });
