@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
     steps:
       - uses: actions/checkout@v3
 
@@ -51,6 +53,8 @@ jobs:
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
     steps:
       - uses: actions/checkout@v3
 
