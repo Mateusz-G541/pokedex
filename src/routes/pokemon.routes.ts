@@ -18,7 +18,7 @@ router.get('/pokemon', pokemonController.getPokemonByTypeAndRegion.bind(pokemonC
 
 // Get random legendary Pokemon
 router.get(
-  '/pokemon/random/legendary',
+  '/pokemon/random-legendary',
   pokemonController.getRandomLegendaryPokemon.bind(pokemonController),
 );
 
