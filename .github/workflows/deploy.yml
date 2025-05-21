@@ -25,13 +25,20 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Build Backend
+        run: npm run build
+
       - name: Start API Server
         env:
           NODE_ENV: test
           PORT: 3000
           HOST: 0.0.0.0
         run: |
-          npm run dev &
+          # Start the server in the background
+          npm run dev > server.log 2>&1 &
+          SERVER_PID=$!
+
+          # Wait for server to start
           echo "Waiting for server to start..."
           for i in {1..30}; do
             if curl -s http://127.0.0.1:3000/api/pokemon/types > /dev/null; then
@@ -39,7 +46,9 @@ jobs:
               break
             fi
             if [ $i -eq 30 ]; then
-              echo "Server failed to start"
+              echo "Server failed to start. Logs:"
+              cat server.log
+              kill $SERVER_PID
               exit 1
             fi
             sleep 1
@@ -52,7 +61,10 @@ jobs:
           CI: true
           HOST: 127.0.0.1
           API_URL: http://127.0.0.1:3000
-        run: npm run test:api
+        run: |
+          npm run test:api
+          # Kill the server after tests
+          kill $SERVER_PID
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
