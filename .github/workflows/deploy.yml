@@ -32,14 +32,20 @@ jobs:
           CI: true
           HOST: 127.0.0.1
         run: |
-          # Start the server in the background
-          npm run start &
+          # Start the server in development mode
+          NODE_ENV=development ts-node-dev --transpile-only src/index.ts &
+          SERVER_PID=$!
+
           # Wait for the server to be ready
           npx wait-on http://127.0.0.1:3000
+
           # Run the tests
-          npm test
+          npm run test:api
+
           # Kill the server process
-          kill $(lsof -t -i:3000) || true
+          kill $SERVER_PID || true
+          # Ensure no process is left running on port 3000
+          npx kill-port 3000 || true
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
