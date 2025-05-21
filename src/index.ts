@@ -14,10 +14,14 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const host = process.env.HOST || '0.0.0.0';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+const allowedOrigins = isDevelopment
+  ? '*'
+  : process.env.ALLOWED_ORIGINS?.split(',') || ['https://pokedex-87cl.vercel.app'];
+
 // Middleware
 app.use(
   cors({
-    origin: isDevelopment ? '*' : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    origin: allowedOrigins,
     methods: ['GET'],
     credentials: true,
   }),

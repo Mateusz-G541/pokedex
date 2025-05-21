@@ -44,12 +44,17 @@ cp .env.example .env
 
 4. Configure your environment variables in `.env`:
 
+```bash
+cp .env.example .env
+```
+
 ```
 PORT=3000
 NODE_ENV=development
 POKE_API_BASE_URL=https://pokeapi.co/api/v2
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
+ALLOWED_ORIGINS=https://pokedex-87cl.vercel.app
 ```
 
 ## Development
