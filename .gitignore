@@ -45,3 +45,4 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 playwright-report/index.html
+playwright-report/index.html
