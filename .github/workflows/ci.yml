@@ -7,9 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  full-pipeline:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -19,43 +18,48 @@ jobs:
           node-version: '18.x'
           cache: 'npm'
 
-      - name: Install dependencies
+      # --- BACKEND ---
+      - name: Install backend dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint backend
         run: npm run lint
 
-      - name: Build
+      - name: Build backend
         run: npm run build
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run tests
+      - name: Test backend
         run: npm run test:api
 
-  deploy:
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+      - name: Deploy backend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_BACKEND }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_BACKEND }}
+        run: |
+          npx vercel --prod --yes --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --confirm
 
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-          cache: 'npm'
-
-      - name: Install dependencies
+      # --- FRONTEND ---
+      - name: Install frontend dependencies
+        working-directory: ./frontend
         run: npm ci
 
-      - name: Build
+      - name: Build frontend
+        working-directory: ./frontend
         run: npm run build
 
-    # Add your deployment steps here
-    # For example, deploying to Render or Railway
-    # - name: Deploy to Render
-    #   run: |
-    #     curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: Test frontend
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Deploy frontend
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_FRONTEND }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_FRONTEND }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_FRONTEND }}
+        run: |
+          npx vercel --prod --yes --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --confirm
