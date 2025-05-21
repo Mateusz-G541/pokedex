@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  full-pipeline:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -34,14 +34,6 @@ jobs:
       - name: Test backend
         run: npm run test:api
 
-      - name: Deploy backend
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_BACKEND }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_BACKEND }}
-        run: |
-          npx vercel --prod --yes --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --confirm
-
       # --- FRONTEND ---
       - name: Install frontend dependencies
         working-directory: ./frontend
@@ -55,11 +47,39 @@ jobs:
         working-directory: ./frontend
         run: npm test
 
-      - name: Deploy frontend
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy Backend API
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_BACKEND }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_BACKEND }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN_BACKEND }} --yes
+
+      - name: Deploy Frontend App
         working-directory: ./frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN_FRONTEND }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_FRONTEND }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID_FRONTEND }}
-        run: |
-          npx vercel --prod --yes --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --confirm
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_FRONTEND }}
+        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN_FRONTEND }} --yes
