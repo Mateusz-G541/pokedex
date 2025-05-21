@@ -16,7 +16,10 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 const allowedOrigins = isDevelopment
   ? '*'
-  : process.env.ALLOWED_ORIGINS?.split(',') || ['https://pokedex-87cl.vercel.app'];
+  : process.env.ALLOWED_ORIGINS?.split(',') || [
+      'https://pokedex-87cl.vercel.app',
+      'https://pokedex-n7cs.vercel.app',
+    ];
 
 // Middleware
 app.use(
@@ -24,6 +27,7 @@ app.use(
     origin: allowedOrigins,
     methods: ['GET'],
     credentials: true,
+    optionsSuccessStatus: 200,
   }),
 );
 
