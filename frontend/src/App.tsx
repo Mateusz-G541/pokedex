@@ -8,6 +8,28 @@ const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replac
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
 
+// Configure axios for better debugging
+axios.interceptors.request.use((request) => {
+  console.log('Starting API Request:', request.url);
+  return request;
+});
+
+axios.interceptors.response.use(
+  (response) => {
+    console.log('Successful API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', error.message);
+    console.error('API Error Config:', error.config);
+    if (error.response) {
+      console.error('Error Status:', error.response.status);
+      console.error('Error Data:', error.response.data);
+    }
+    return Promise.reject(error);
+  },
+);
+
 interface Ability {
   ability: {
     name: string;
@@ -72,6 +94,8 @@ function App() {
   const [description, setDescription] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [team, setTeam] = useState<Pokemon[]>([]);
+  const [teamMessage, setTeamMessage] = useState('');
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -99,6 +123,23 @@ function App() {
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
+
+  // Save team to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('pokemonTeam', JSON.stringify(team));
+  }, [team]);
+
+  // Load team from localStorage on initial render
+  useEffect(() => {
+    const savedTeam = localStorage.getItem('pokemonTeam');
+    if (savedTeam) {
+      try {
+        setTeam(JSON.parse(savedTeam));
+      } catch (e) {
+        console.error('Error parsing saved team:', e);
+      }
+    }
+  }, []);
 
   const fetchPokemon = async (search: string | number) => {
     try {
@@ -138,7 +179,13 @@ function App() {
     try {
       setLoading(true);
       setError('');
-      const response = await axios.get(`${API_URL}/api/pokemon/random/legendary`);
+
+      // Using a hardcoded URL for testing
+      console.log('Trying direct URL request');
+      const directUrl = 'https://pokedex-n7cs.vercel.app/api/pokemon/random/legendary';
+      console.log('Direct URL:', directUrl);
+
+      const response = await axios.get(directUrl);
       setPokemon(response.data);
 
       // Fetch description
@@ -178,6 +225,45 @@ function App() {
     fetchPokemon(suggestion);
   };
 
+  const addToTeam = () => {
+    if (!pokemon) return;
+
+    // Check if team already has 6 Pokemon
+    if (team.length >= 6) {
+      setTeamMessage('Your team is full! Remove a Pokémon to add a new one.');
+      setTimeout(() => setTeamMessage(''), 3000);
+      return;
+    }
+
+    // Check if Pokemon is already in team
+    if (team.some((p) => p.id === pokemon.id)) {
+      setTeamMessage('This Pokémon is already in your team!');
+      setTimeout(() => setTeamMessage(''), 3000);
+      return;
+    }
+
+    // Add Pokemon to team
+    setTeam([...team, pokemon]);
+    setTeamMessage(`${pokemon.name} added to your team!`);
+    setTimeout(() => setTeamMessage(''), 3000);
+  };
+
+  const removeFromTeam = (id: number) => {
+    setTeam(team.filter((p) => p.id !== id));
+    setTeamMessage('Pokémon removed from your team.');
+    setTimeout(() => setTeamMessage(''), 3000);
+  };
+
+  const clearTeam = () => {
+    if (team.length === 0) return;
+
+    if (confirm('Are you sure you want to release all your Pokémon?')) {
+      setTeam([]);
+      setTeamMessage('Your team has been cleared.');
+      setTimeout(() => setTeamMessage(''), 3000);
+    }
+  };
+
   return (
     <div className="container">
       <h1>Pokédex</h1>
@@ -208,8 +294,52 @@ function App() {
         </div>
         <button onClick={handleSearch}>Search</button>
         <button onClick={handleRandom}>Random</button>
-        <button onClick={handleRandomLegendary}>Random Legendary</button>
+        <button onClick={handleRandomLegendary}>Legendary</button>
       </div>
+
+      {/* Team Section */}
+      <div className="team-section">
+        <h2>My Team ({team.length}/6)</h2>
+        {teamMessage && <div className="team-message">{teamMessage}</div>}
+
+        <div className="team-container">
+          {team.length === 0 ? (
+            <p className="empty-team">Your team is empty. Add Pokémon to your team!</p>
+          ) : (
+            <>
+              <div className="team-grid">
+                {team.map((teamPokemon) => (
+                  <div key={teamPokemon.id} className="team-pokemon">
+                    <img src={teamPokemon.sprites.front_default} alt={teamPokemon.name} />
+                    <p>{teamPokemon.name}</p>
+                    <div className="team-pokemon-types">
+                      {teamPokemon.types.map((type) => (
+                        <span
+                          key={type.type.name}
+                          className="team-type-badge"
+                          style={{ backgroundColor: typeColors[type.type.name] }}
+                        >
+                          {type.type.name}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      className="remove-pokemon"
+                      onClick={() => removeFromTeam(teamPokemon.id)}
+                    >
+                      Release
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button className="clear-team" onClick={clearTeam}>
+                Release All
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
       {error && <div className="error">{error}</div>}
       {loading && <div className="loading">Loading...</div>}
       {pokemon && (
@@ -229,6 +359,9 @@ function App() {
               </span>
             ))}
           </div>
+          <button className="add-to-team" onClick={addToTeam}>
+            Add to Team
+          </button>
           <div className="pokemon-details">
             <p>
               <strong>ID:</strong> #{pokemon.id}

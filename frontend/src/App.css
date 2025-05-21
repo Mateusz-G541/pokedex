@@ -258,3 +258,148 @@ button:disabled {
 .suggestion-item:hover {
   background-color: #f0f0f0;
 }
+
+/* Team Styles */
+.team-section {
+  width: 100%;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.team-section h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.team-message {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+  animation: fadeOut 3s ease-in-out;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.team-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-team {
+  color: #95a5a6;
+  font-style: italic;
+  margin: 1rem 0;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.team-pokemon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.team-pokemon:hover {
+  transform: translateY(-5px);
+}
+
+.team-pokemon img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.team-pokemon p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  text-transform: capitalize;
+  text-align: center;
+}
+
+.team-pokemon-types {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.team-type-badge {
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.remove-pokemon {
+  background-color: #e74c3c;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.remove-pokemon:hover {
+  background-color: #c0392b;
+}
+
+.clear-team {
+  background-color: #e74c3c;
+  margin-top: 1rem;
+}
+
+.clear-team:hover {
+  background-color: #c0392b;
+}
+
+.add-to-team {
+  background-color: #2ecc71;
+  margin: 1rem 0;
+}
+
+.add-to-team:hover {
+  background-color: #27ae60;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .team-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
