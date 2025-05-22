@@ -122,6 +122,204 @@ const typeColors: { [key: string]: string } = {
   fairy: '#EE99AC',
 };
 
+// Define type effectiveness relationships
+const typeEffectiveness: Record<string, Record<string, number>> = {
+  normal: {
+    rock: 0.5,
+    ghost: 0,
+    steel: 0.5,
+  },
+  fire: {
+    fire: 0.5,
+    water: 0.5,
+    grass: 2,
+    ice: 2,
+    bug: 2,
+    rock: 0.5,
+    dragon: 0.5,
+    steel: 2,
+  },
+  water: {
+    fire: 2,
+    water: 0.5,
+    grass: 0.5,
+    ground: 2,
+    rock: 2,
+    dragon: 0.5,
+  },
+  electric: {
+    water: 2,
+    electric: 0.5,
+    grass: 0.5,
+    ground: 0,
+    flying: 2,
+    dragon: 0.5,
+  },
+  grass: {
+    fire: 0.5,
+    water: 2,
+    grass: 0.5,
+    poison: 0.5,
+    ground: 2,
+    flying: 0.5,
+    bug: 0.5,
+    rock: 2,
+    dragon: 0.5,
+    steel: 0.5,
+  },
+  ice: {
+    fire: 0.5,
+    water: 0.5,
+    grass: 2,
+    ice: 0.5,
+    ground: 2,
+    flying: 2,
+    dragon: 2,
+    steel: 0.5,
+  },
+  fighting: {
+    normal: 2,
+    ice: 2,
+    poison: 0.5,
+    flying: 0.5,
+    psychic: 0.5,
+    bug: 0.5,
+    rock: 2,
+    ghost: 0,
+    dark: 2,
+    steel: 2,
+    fairy: 0.5,
+  },
+  poison: {
+    grass: 2,
+    poison: 0.5,
+    ground: 0.5,
+    rock: 0.5,
+    ghost: 0.5,
+    steel: 0,
+    fairy: 2,
+  },
+  ground: {
+    fire: 2,
+    electric: 2,
+    grass: 0.5,
+    poison: 2,
+    flying: 0,
+    bug: 0.5,
+    rock: 2,
+    steel: 2,
+  },
+  flying: {
+    electric: 0.5,
+    grass: 2,
+    fighting: 2,
+    bug: 2,
+    rock: 0.5,
+    steel: 0.5,
+  },
+  psychic: {
+    fighting: 2,
+    poison: 2,
+    psychic: 0.5,
+    dark: 0,
+    steel: 0.5,
+  },
+  bug: {
+    fire: 0.5,
+    grass: 2,
+    fighting: 0.5,
+    poison: 0.5,
+    flying: 0.5,
+    psychic: 2,
+    ghost: 0.5,
+    dark: 2,
+    steel: 0.5,
+    fairy: 0.5,
+  },
+  rock: {
+    fire: 2,
+    ice: 2,
+    fighting: 0.5,
+    ground: 0.5,
+    flying: 2,
+    bug: 2,
+    steel: 0.5,
+  },
+  ghost: {
+    normal: 0,
+    psychic: 2,
+    ghost: 2,
+    dark: 0.5,
+  },
+  dragon: {
+    dragon: 2,
+    steel: 0.5,
+    fairy: 0,
+  },
+  dark: {
+    fighting: 0.5,
+    psychic: 2,
+    ghost: 2,
+    dark: 0.5,
+    fairy: 0.5,
+  },
+  steel: {
+    fire: 0.5,
+    water: 0.5,
+    electric: 0.5,
+    ice: 2,
+    rock: 2,
+    steel: 0.5,
+    fairy: 2,
+  },
+  fairy: {
+    fire: 0.5,
+    fighting: 2,
+    poison: 0.5,
+    dragon: 2,
+    dark: 2,
+    steel: 0.5,
+  },
+};
+
+// List all Pokémon types
+const allTypes = [
+  'normal',
+  'fire',
+  'water',
+  'electric',
+  'grass',
+  'ice',
+  'fighting',
+  'poison',
+  'ground',
+  'flying',
+  'psychic',
+  'bug',
+  'rock',
+  'ghost',
+  'dragon',
+  'dark',
+  'steel',
+  'fairy',
+];
+
+// Add interface for type analysis
+interface TypeAnalysis {
+  strongAgainst: string[];
+  weakAgainst: string[];
+  immuneTo: string[];
+  resistantTo: string[];
+  vulnerableTo: string[];
+}
+
+// Add interface for team recommendation
+interface PokemonRecommendation {
+  type: string;
+  reason: string;
+  examples: string[];
+}
+
 function App() {
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,6 +335,16 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>(TABS.POKEDEX);
   const [evolutionChain, setEvolutionChain] = useState<EvolutionData[]>([]);
   const [loadingEvolution, setLoadingEvolution] = useState(false);
+
+  // Add new state variables for team analysis and recommendations
+  const [teamAnalysis, setTeamAnalysis] = useState<TypeAnalysis>({
+    strongAgainst: [],
+    weakAgainst: [],
+    immuneTo: [],
+    resistantTo: [],
+    vulnerableTo: [],
+  });
+  const [recommendations, setRecommendations] = useState<PokemonRecommendation[]>([]);
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -205,6 +413,27 @@ function App() {
       fetchEvolutionChain(pokemon.species.url);
     }
   }, [pokemon]);
+
+  // Add effect to analyze team whenever it changes
+  useEffect(() => {
+    if (team.length > 0) {
+      const analysis = analyzeTeam(team);
+      setTeamAnalysis(analysis);
+
+      const recommendations = generateRecommendations(analysis);
+      setRecommendations(recommendations);
+    } else {
+      // Reset analysis when team is empty
+      setTeamAnalysis({
+        strongAgainst: [],
+        weakAgainst: [],
+        immuneTo: [],
+        resistantTo: [],
+        vulnerableTo: [],
+      });
+      setRecommendations([]);
+    }
+  }, [team]);
 
   const fetchPokemon = async (search: string | number) => {
     try {
@@ -468,6 +697,310 @@ function App() {
     );
   };
 
+  // Add function to analyze team type coverage
+  const analyzeTeam = (team: Pokemon[]): TypeAnalysis => {
+    // Initialize type effectiveness counters
+    const typeScores: Record<string, { offense: number; defense: number }> = {};
+
+    allTypes.forEach((type) => {
+      typeScores[type] = { offense: 0, defense: 0 };
+    });
+
+    // Analyze each Pokémon in the team
+    team.forEach((pokemon) => {
+      // Get the Pokémon's types
+      const pokemonTypes = pokemon.types.map((t) => t.type.name);
+
+      // Analyze offensive coverage (what types this Pokémon is strong against)
+      pokemonTypes.forEach((pokemonType) => {
+        if (typeEffectiveness[pokemonType]) {
+          Object.entries(typeEffectiveness[pokemonType]).forEach(([targetType, effectiveness]) => {
+            if (effectiveness > 1) {
+              typeScores[targetType].offense += 1;
+            }
+          });
+        }
+      });
+
+      // Analyze defensive coverage (how this Pokémon resists types)
+      allTypes.forEach((attackingType) => {
+        let totalEffectiveness = 1;
+
+        // Calculate combined type effectiveness
+        pokemonTypes.forEach((defenderType) => {
+          const effectiveness = typeEffectiveness[attackingType]?.[defenderType] || 1;
+          totalEffectiveness *= effectiveness;
+        });
+
+        if (totalEffectiveness === 0) {
+          typeScores[attackingType].defense -= 2; // Immune
+        } else if (totalEffectiveness < 1) {
+          typeScores[attackingType].defense -= 1; // Resistant
+        } else if (totalEffectiveness > 1) {
+          typeScores[attackingType].defense += 1; // Vulnerable
+        }
+      });
+    });
+
+    // Categorize types based on scores
+    const strongAgainst = allTypes.filter((type) => typeScores[type].offense >= 2);
+    const weakAgainst = allTypes.filter((type) => typeScores[type].offense === 0);
+
+    const immuneTo = allTypes.filter((type) => typeScores[type].defense <= -4);
+    const resistantTo = allTypes.filter(
+      (type) => typeScores[type].defense < 0 && typeScores[type].defense > -4,
+    );
+    const vulnerableTo = allTypes.filter((type) => typeScores[type].defense > 0);
+
+    return {
+      strongAgainst,
+      weakAgainst,
+      immuneTo,
+      resistantTo,
+      vulnerableTo,
+    };
+  };
+
+  // Add function to generate team recommendations
+  const generateRecommendations = (analysis: TypeAnalysis): PokemonRecommendation[] => {
+    const recommendations: PokemonRecommendation[] = [];
+
+    // Recommend types to cover weaknesses
+    if (analysis.weakAgainst.length > 0) {
+      // Find types that are strong against what the team is weak against
+      allTypes.forEach((type) => {
+        const counters = analysis.weakAgainst.filter(
+          (weakType) => typeEffectiveness[type]?.[weakType] > 1,
+        );
+
+        if (counters.length >= 2) {
+          const alreadyHasType = team.some((pokemon) =>
+            pokemon.types.some((t) => t.type.name === type),
+          );
+
+          if (!alreadyHasType) {
+            const examples = getExamplePokemon(type);
+            recommendations.push({
+              type,
+              reason: `Strong against ${counters.join(', ')} types`,
+              examples,
+            });
+          }
+        }
+      });
+    }
+
+    // Recommend types to resist vulnerabilities
+    if (analysis.vulnerableTo.length > 0) {
+      const criticalVulnerabilities = analysis.vulnerableTo.filter(
+        (type) => !analysis.resistantTo.includes(type) && !analysis.immuneTo.includes(type),
+      );
+
+      allTypes.forEach((type) => {
+        const resists = criticalVulnerabilities.filter(
+          (vulnType) => (typeEffectiveness[vulnType]?.[type] || 1) < 1,
+        );
+
+        if (resists.length >= 2) {
+          const alreadyHasType = team.some((pokemon) =>
+            pokemon.types.some((t) => t.type.name === type),
+          );
+
+          if (!alreadyHasType) {
+            const examples = getExamplePokemon(type);
+            recommendations.push({
+              type,
+              reason: `Resists ${resists.join(', ')} types`,
+              examples,
+            });
+          }
+        }
+      });
+    }
+
+    // Limit to top 3 recommendations
+    return recommendations.slice(0, 3);
+  };
+
+  // Function to get example Pokémon for a type
+  const getExamplePokemon = (type: string): string[] => {
+    // Example Pokémon for each type (these are just common examples)
+    const examplesByType: Record<string, string[]> = {
+      normal: ['Snorlax', 'Tauros', 'Eevee'],
+      fire: ['Charizard', 'Arcanine', 'Ninetales'],
+      water: ['Blastoise', 'Vaporeon', 'Gyarados'],
+      electric: ['Pikachu', 'Jolteon', 'Electabuzz'],
+      grass: ['Venusaur', 'Exeggutor', 'Tangela'],
+      ice: ['Lapras', 'Articuno', 'Jynx'],
+      fighting: ['Machamp', 'Hitmonlee', 'Hitmonchan'],
+      poison: ['Gengar', 'Muk', 'Venomoth'],
+      ground: ['Golem', 'Dugtrio', 'Rhydon'],
+      flying: ['Pidgeot', 'Scyther', 'Dragonite'],
+      psychic: ['Alakazam', 'Mewtwo', 'Espeon'],
+      bug: ['Scyther', 'Pinsir', 'Heracross'],
+      rock: ['Golem', 'Onix', 'Kabutops'],
+      ghost: ['Gengar', 'Haunter', 'Misdreavus'],
+      dragon: ['Dragonite', 'Salamence', 'Garchomp'],
+      dark: ['Tyranitar', 'Umbreon', 'Houndoom'],
+      steel: ['Steelix', 'Scizor', 'Metagross'],
+      fairy: ['Clefable', 'Togekiss', 'Sylveon'],
+    };
+
+    return examplesByType[type] || ['Unknown'];
+  };
+
+  const renderTeamAnalysis = () => {
+    if (team.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="team-analysis">
+        <h3>Team Analysis</h3>
+        <div className="type-coverage">
+          <div className="coverage-section">
+            <h4>Offensive Coverage</h4>
+            <div className="coverage-row">
+              <p>
+                <strong>Strong against:</strong>
+              </p>
+              <div className="type-tags">
+                {teamAnalysis.strongAgainst.length > 0 ? (
+                  teamAnalysis.strongAgainst.map((type) => (
+                    <span
+                      key={type}
+                      className="type-tag"
+                      style={{ backgroundColor: typeColors[type] }}
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-types">None</span>
+                )}
+              </div>
+            </div>
+            <div className="coverage-row">
+              <p>
+                <strong>Weak against:</strong>
+              </p>
+              <div className="type-tags">
+                {teamAnalysis.weakAgainst.length > 0 ? (
+                  teamAnalysis.weakAgainst.map((type) => (
+                    <span
+                      key={type}
+                      className="type-tag"
+                      style={{ backgroundColor: typeColors[type] }}
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-types">None</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="coverage-section">
+            <h4>Defensive Coverage</h4>
+            <div className="coverage-row">
+              <p>
+                <strong>Immune to:</strong>
+              </p>
+              <div className="type-tags">
+                {teamAnalysis.immuneTo.length > 0 ? (
+                  teamAnalysis.immuneTo.map((type) => (
+                    <span
+                      key={type}
+                      className="type-tag"
+                      style={{ backgroundColor: typeColors[type] }}
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-types">None</span>
+                )}
+              </div>
+            </div>
+            <div className="coverage-row">
+              <p>
+                <strong>Resistant to:</strong>
+              </p>
+              <div className="type-tags">
+                {teamAnalysis.resistantTo.length > 0 ? (
+                  teamAnalysis.resistantTo.map((type) => (
+                    <span
+                      key={type}
+                      className="type-tag"
+                      style={{ backgroundColor: typeColors[type] }}
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-types">None</span>
+                )}
+              </div>
+            </div>
+            <div className="coverage-row">
+              <p>
+                <strong>Vulnerable to:</strong>
+              </p>
+              <div className="type-tags">
+                {teamAnalysis.vulnerableTo.length > 0 ? (
+                  teamAnalysis.vulnerableTo.map((type) => (
+                    <span
+                      key={type}
+                      className="type-tag"
+                      style={{ backgroundColor: typeColors[type] }}
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-types">None</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTeamRecommendations = () => {
+    if (team.length === 0 || recommendations.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="team-recommendations">
+        <h3>Recommended Types</h3>
+        <div className="recommendations-list">
+          {recommendations.map((rec, index) => (
+            <div key={index} className="recommendation-card">
+              <div className="recommendation-type">
+                <span className="type-tag large" style={{ backgroundColor: typeColors[rec.type] }}>
+                  {rec.type}
+                </span>
+              </div>
+              <div className="recommendation-details">
+                <p className="recommendation-reason">{rec.reason}</p>
+                <div className="recommendation-examples">
+                  <p>
+                    <strong>Examples:</strong> {rec.examples.join(', ')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case TABS.POKEDEX:
@@ -631,6 +1164,10 @@ function App() {
                       </div>
                     ))}
                   </div>
+
+                  {renderTeamAnalysis()}
+                  {renderTeamRecommendations()}
+
                   <button className="clear-team" onClick={clearTeam}>
                     Release All
                   </button>
