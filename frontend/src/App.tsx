@@ -440,9 +440,8 @@ function App() {
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
-  // Add state for regions
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [regions, setRegions] = useState<Region[]>([
+  // Add state for regions with predefined data (no setter needed)
+  const regions = [
     {
       id: 1,
       name: 'Kanto',
