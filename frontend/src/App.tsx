@@ -441,7 +441,7 @@ function App() {
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
   // Add state for regions with predefined data
-  const [regions, setRegions] = useState([
+  const [regions, setRegions] = useState<Region[]>([
     {
       id: 1,
       name: 'Kanto',
