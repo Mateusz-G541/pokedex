@@ -30,12 +30,15 @@ axios.interceptors.response.use(
   },
 );
 
-// Define tabs for navigation
-enum Tab {
-  POKEDEX = 'pokedex',
-  TEAM = 'team',
-  FAVORITES = 'favorites',
-}
+// Define tabs for navigation as string constants instead of enum
+const TABS = {
+  POKEDEX: 'pokedex',
+  TEAM: 'team',
+  FAVORITES: 'favorites',
+} as const;
+
+// Type for tabs
+type TabType = (typeof TABS)[keyof typeof TABS];
 
 interface Ability {
   ability: {
@@ -72,6 +75,32 @@ interface Pokemon {
   };
 }
 
+// Interface for evolution chain
+interface EvolutionChain {
+  chain: {
+    species: {
+      name: string;
+      url: string;
+    };
+    evolves_to: EvolvesTo[];
+  };
+}
+
+interface EvolvesTo {
+  species: {
+    name: string;
+    url: string;
+  };
+  evolves_to: EvolvesTo[];
+}
+
+// Interface for evolution data displayed to user
+interface EvolutionData {
+  name: string;
+  id: number;
+  image: string;
+}
+
 const typeColors: { [key: string]: string } = {
   normal: '#A8A878',
   fire: '#F08030',
@@ -105,7 +134,9 @@ function App() {
   const [teamMessage, setTeamMessage] = useState('');
   const [favorites, setFavorites] = useState<Pokemon[]>([]);
   const [favoriteMessage, setFavoriteMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.POKEDEX);
+  const [activeTab, setActiveTab] = useState<TabType>(TABS.POKEDEX);
+  const [evolutionChain, setEvolutionChain] = useState<EvolutionData[]>([]);
+  const [loadingEvolution, setLoadingEvolution] = useState(false);
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -168,6 +199,13 @@ function App() {
     }
   }, []);
 
+  // Fetch pokemon evolution chain when pokemon changes
+  useEffect(() => {
+    if (pokemon) {
+      fetchEvolutionChain(pokemon.species.url);
+    }
+  }, [pokemon]);
+
   const fetchPokemon = async (search: string | number) => {
     try {
       setLoading(true);
@@ -188,6 +226,62 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchEvolutionChain = async (speciesUrl: string) => {
+    try {
+      setLoadingEvolution(true);
+      setEvolutionChain([]);
+
+      // Fetch the species data to get the evolution chain URL
+      const speciesResponse = await axios.get(speciesUrl);
+      const evolutionChainUrl = speciesResponse.data.evolution_chain.url;
+
+      // Fetch the evolution chain
+      const evolutionResponse = await axios.get(evolutionChainUrl);
+      const evolutionData = evolutionResponse.data;
+
+      // Process the evolution chain
+      const processedChain = await processEvolutionChain(evolutionData);
+      setEvolutionChain(processedChain);
+    } catch (err) {
+      console.error('Error fetching evolution chain:', err);
+    } finally {
+      setLoadingEvolution(false);
+    }
+  };
+
+  const processEvolutionChain = async (data: EvolutionChain): Promise<EvolutionData[]> => {
+    const result: EvolutionData[] = [];
+
+    // Helper function to traverse the evolution chain recursively
+    const traverseEvolutionChain = async (chain: any) => {
+      try {
+        // Extract the species ID from the URL
+        const speciesId = chain.species.url.split('/').slice(-2, -1)[0];
+
+        // Fetch the pokemon data to get the sprite
+        const pokemonResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
+
+        result.push({
+          name: chain.species.name,
+          id: parseInt(speciesId),
+          image: pokemonResponse.data.sprites.front_default,
+        });
+
+        // Recursively process the next evolution stage if it exists
+        if (chain.evolves_to && chain.evolves_to.length > 0) {
+          for (const evolution of chain.evolves_to) {
+            await traverseEvolutionChain(evolution);
+          }
+        }
+      } catch (err) {
+        console.error('Error processing evolution chain:', err);
+      }
+    };
+
+    await traverseEvolutionChain(data.chain);
+    return result;
   };
 
   const handleSearch = () => {
@@ -330,7 +424,7 @@ function App() {
   const viewPokemonDetails = (pokemon: Pokemon) => {
     setSearchTerm(pokemon.name);
     setPokemon(pokemon);
-    setActiveTab(Tab.POKEDEX);
+    setActiveTab(TABS.POKEDEX);
 
     // Fetch description for the pokemon
     const fetchDescription = async () => {
@@ -349,9 +443,34 @@ function App() {
     fetchDescription();
   };
 
+  const renderEvolutionChain = () => {
+    if (loadingEvolution) {
+      return <div className="loading-evolution">Loading evolution chain...</div>;
+    }
+
+    if (evolutionChain.length <= 1) {
+      return <p>This Pokémon does not evolve.</p>;
+    }
+
+    return (
+      <div className="evolution-chain">
+        {evolutionChain.map((evolution, index) => (
+          <div key={evolution.id} className="evolution-stage">
+            <div className="evolution-pokemon">
+              <img src={evolution.image} alt={evolution.name} />
+              <p>{evolution.name}</p>
+              <span className="evolution-id">#{evolution.id}</span>
+            </div>
+            {index < evolutionChain.length - 1 && <div className="evolution-arrow">→</div>}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
-      case Tab.POKEDEX:
+      case TABS.POKEDEX:
         return (
           <>
             <div className="search-container">
@@ -449,6 +568,10 @@ function App() {
                       </div>
                     ))}
                   </div>
+                  <div className="evolution-container">
+                    <h3>Evolution Chain</h3>
+                    {renderEvolutionChain()}
+                  </div>
                   <div className="description">
                     <h3>Description</h3>
                     <p>{description}</p>
@@ -467,7 +590,7 @@ function App() {
           </>
         );
 
-      case Tab.TEAM:
+      case TABS.TEAM:
         return (
           <div className="team-section">
             <h2>My Team ({team.length}/6)</h2>
@@ -517,7 +640,7 @@ function App() {
           </div>
         );
 
-      case Tab.FAVORITES:
+      case TABS.FAVORITES:
         return (
           <div className="favorites-section">
             <h2>My Favorites ({favorites.length})</h2>
@@ -568,6 +691,9 @@ function App() {
             </div>
           </div>
         );
+
+      default:
+        return null;
     }
   };
 
@@ -577,20 +703,20 @@ function App() {
 
       <div className="tabs">
         <button
-          className={`tab ${activeTab === Tab.POKEDEX ? 'active' : ''}`}
-          onClick={() => setActiveTab(Tab.POKEDEX)}
+          className={`tab ${activeTab === TABS.POKEDEX ? 'active' : ''}`}
+          onClick={() => setActiveTab(TABS.POKEDEX)}
         >
           Pokédex
         </button>
         <button
-          className={`tab ${activeTab === Tab.TEAM ? 'active' : ''}`}
-          onClick={() => setActiveTab(Tab.TEAM)}
+          className={`tab ${activeTab === TABS.TEAM ? 'active' : ''}`}
+          onClick={() => setActiveTab(TABS.TEAM)}
         >
           Team ({team.length})
         </button>
         <button
-          className={`tab ${activeTab === Tab.FAVORITES ? 'active' : ''}`}
-          onClick={() => setActiveTab(Tab.FAVORITES)}
+          className={`tab ${activeTab === TABS.FAVORITES ? 'active' : ''}`}
+          onClick={() => setActiveTab(TABS.FAVORITES)}
         >
           Favorites ({favorites.length})
         </button>
