@@ -1658,62 +1658,113 @@ function App() {
   };
 
   // Function to apply advanced search filters
-  const applyFilters = async () => {
-    if (
-      searchFilters.types.length === 0 &&
-      searchFilters.minAttack === 0 &&
-      searchFilters.maxAttack === 255 &&
-      searchFilters.minDefense === 0 &&
-      searchFilters.maxDefense === 255 &&
-      searchFilters.minHP === 0 &&
-      searchFilters.maxHP === 255 &&
-      searchFilters.minSpeed === 0 &&
-      searchFilters.maxSpeed === 255
-    ) {
+  // Create a state variable to cache all Pokémon data
+  const [allPokemonCache, setAllPokemonCache] = useState<Pokemon[]>([]);
+  const [isCacheLoaded, setIsCacheLoaded] = useState(false);
+
+  // Load Pokémon cache once on component mount
+  useEffect(() => {
+    const loadPokemonCache = async () => {
+      if (allPokemonCache.length > 0) return; // Skip if already loaded
+
+      setIsLoadingFiltered(true);
+      try {
+        // Fetch list of all Pokémon in a single request
+        const response = await axios.get(`${API_URL}/api/pokemon?limit=151`);
+        const pokemonList = response.data.results;
+
+        // Fetch details for all Pokémon in parallel (batch of 20 at a time to avoid rate limits)
+        const pokemonDetails: Pokemon[] = [];
+        const batchSize = 20;
+
+        for (let i = 0; i < pokemonList.length; i += batchSize) {
+          const batch = pokemonList.slice(i, i + batchSize);
+          const batchPromises = batch.map((p: any) =>
+            axios.get(`${API_URL}/api/pokemon/${p.name}`),
+          );
+
+          const batchResults = await Promise.all(batchPromises);
+          batchResults.forEach((result) => {
+            pokemonDetails.push(result.data);
+          });
+        }
+
+        setAllPokemonCache(pokemonDetails);
+        setIsCacheLoaded(true);
+      } catch (error) {
+        console.error('Error loading Pokémon cache:', error);
+      } finally {
+        setIsLoadingFiltered(false);
+      }
+    };
+
+    loadPokemonCache();
+  }, []);
+
+  // Toggle type filter
+  const toggleTypeFilter = (type: string) => {
+    setSearchFilters((prev) => {
+      const newTypes = prev.types.includes(type)
+        ? prev.types.filter((t) => t !== type)
+        : [...prev.types, type];
+
+      // Return updated filters
+      const updated = {
+        ...prev,
+        types: newTypes,
+      };
+
+      // Apply filters immediately when types change
+      if (newTypes.length > 0) {
+        setTimeout(() => applyFilters(updated), 0);
+      } else if (prev.types.length > 0 && newTypes.length === 0) {
+        // Clear filtered results when all type filters are removed
+        setFilteredPokemon([]);
+      }
+
+      return updated;
+    });
+  };
+
+  // Apply filters
+  const applyFilters = (filters = searchFilters) => {
+    // If no type filters are selected, don't filter
+    if (filters.types.length === 0) {
       setFilteredPokemon([]);
       return;
+    }
+
+    if (!isCacheLoaded) {
+      setIsLoadingFiltered(true);
+      return; // Wait for cache to load
     }
 
     setIsLoadingFiltered(true);
 
     try {
-      // Fetch a sample of Pokémon to filter (for demo purposes)
-      const fetchedPokemon: Pokemon[] = [];
-
-      for (let i = 1; i <= 150; i++) {
-        try {
-          const response = await axios.get(`${API_URL}/api/pokemon/${i}`);
-          fetchedPokemon.push(response.data);
-        } catch (error) {
-          console.error(`Error fetching pokemon ${i}:`, error);
-        }
-      }
-
-      // Apply filters
-      const filtered = fetchedPokemon.filter((pokemon) => {
+      // Apply filters to cached data
+      const filtered = allPokemonCache.filter((pokemon) => {
         // Filter by type if types are selected
-        if (searchFilters.types.length > 0) {
+        if (filters.types.length > 0) {
           const pokemonTypes = pokemon.types.map((t) => t.type.name);
-          const hasMatchingType = pokemonTypes.some((type) => searchFilters.types.includes(type));
+          const hasMatchingType = pokemonTypes.some((type) => filters.types.includes(type));
           if (!hasMatchingType) return false;
         }
 
         // Filter by stats
         const attackStat =
           pokemon.stats.find((stat) => stat.stat.name === 'attack')?.base_stat || 0;
-        if (attackStat < searchFilters.minAttack || attackStat > searchFilters.maxAttack)
-          return false;
+        if (attackStat < filters.minAttack || attackStat > filters.maxAttack) return false;
 
         const defenseStat =
           pokemon.stats.find((stat) => stat.stat.name === 'defense')?.base_stat || 0;
-        if (defenseStat < searchFilters.minDefense || defenseStat > searchFilters.maxDefense)
-          return false;
+        if (defenseStat < filters.minDefense || defenseStat > filters.maxDefense) return false;
 
         const hpStat = pokemon.stats.find((stat) => stat.stat.name === 'hp')?.base_stat || 0;
-        if (hpStat < searchFilters.minHP || hpStat > searchFilters.maxHP) return false;
+        if (hpStat < filters.minHP || hpStat > filters.maxHP) return false;
 
         const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed')?.base_stat || 0;
-        if (speedStat < searchFilters.minSpeed || speedStat > searchFilters.maxSpeed) return false;
+        if (speedStat < filters.minSpeed || speedStat > filters.maxSpeed) return false;
 
         return true;
       });
@@ -1724,23 +1775,6 @@ function App() {
     } finally {
       setIsLoadingFiltered(false);
     }
-  };
-
-  // Toggle type filter
-  const toggleTypeFilter = (type: string) => {
-    setSearchFilters((prev) => {
-      if (prev.types.includes(type)) {
-        return {
-          ...prev,
-          types: prev.types.filter((t) => t !== type),
-        };
-      } else {
-        return {
-          ...prev,
-          types: [...prev.types, type],
-        };
-      }
-    });
   };
 
   // Reset filters
@@ -1783,12 +1817,31 @@ function App() {
                     : '#f0f0f0',
                   color: searchFilters.types.includes(type) ? 'white' : '#333',
                 }}
-                onClick={() => toggleTypeFilter(type)}
               >
-                {type}
+                <label className="type-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={searchFilters.types.includes(type)}
+                    onChange={() => toggleTypeFilter(type)}
+                  />
+                  <span className="type-name">{type}</span>
+                </label>
               </div>
             ))}
           </div>
+          {searchFilters.types.length > 0 && (
+            <div className="selected-types">
+              <p>Selected types: {searchFilters.types.length}</p>
+              <button
+                onClick={() => {
+                  setSearchFilters((prev) => ({ ...prev, types: [] }));
+                  setFilteredPokemon([]);
+                }}
+              >
+                Clear types
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="filter-section">
@@ -1907,8 +1960,8 @@ function App() {
           </div>
         </div>
 
-        <button className="apply-filters" onClick={applyFilters}>
-          Apply Filters
+        <button className="apply-filters" onClick={() => applyFilters()}>
+          Apply Stat Filters
         </button>
       </div>
     );

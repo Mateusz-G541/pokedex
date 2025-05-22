@@ -1261,3 +1261,70 @@ button:disabled {
   margin: 0;
   padding: 0;
 }
+
+/* Type filter styles */
+.type-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.type-filter {
+  padding: 8px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.type-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
+.type-checkbox-label input[type='checkbox'] {
+  margin-right: 8px;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.type-name {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.selected-types {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+.selected-types p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.selected-types button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.selected-types button:hover {
+  background-color: #d32f2f;
+}
