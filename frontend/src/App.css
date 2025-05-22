@@ -1150,3 +1150,73 @@ button:disabled {
     justify-content: center;
   }
 }
+
+/* Region image placeholder styles */
+.region-image-placeholder {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  color: #555;
+  text-align: center;
+}
+
+.region-image-placeholder p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.region-image-placeholder small {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+/* Region starter showcase styles */
+.region-starter-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.region-starter-showcase img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  background-color: #f8f9fa;
+  border-radius: 50%;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.starter-caption {
+  font-size: 1rem;
+  color: #555;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.region-detail-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  color: #555;
+}
+
+/* Make starter Pokémon images larger */
+.region-detail-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  object-fit: contain;
+}
