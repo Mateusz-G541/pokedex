@@ -926,14 +926,11 @@ function App() {
   const handleRandomLegendary = async () => {
     try {
       setLoading(true);
-      setError('');
+      // Use the configurable API_URL instead of hardcoded URL
+      const url = `${API_URL}/api/pokemon/random/legendary`;
+      console.log('Random Legendary URL:', url);
 
-      // Using a hardcoded URL for testing
-      console.log('Trying direct URL request');
-      const directUrl = 'https://pokedex-n7cs.vercel.app/api/pokemon/random/legendary';
-      console.log('Direct URL:', directUrl);
-
-      const response = await axios.get(directUrl);
+      const response = await axios.get(url);
       setPokemon(response.data);
 
       // Fetch description
