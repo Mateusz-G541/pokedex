@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import { RegionExplorer } from './components/Regions';
+import { PokedexExplorer } from './components/Pokedex';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
@@ -2178,131 +2179,44 @@ function App() {
     switch (activeTab) {
       case TABS.POKEDEX:
         return (
-          <>
-            <div className="search-container">
-              <div className="search-input-container">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name or ID..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  onFocus={() => searchTerm.length >= 3 && setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="suggestions-container">
-                    {suggestions.map((suggestion) => (
-                      <div
-                        key={suggestion}
-                        className="suggestion-item"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                      >
-                        {suggestion}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button onClick={handleSearch}>Search</button>
-              <button onClick={handleRandom}>Random</button>
-              <button onClick={handleRandomLegendary}>Legendary</button>
-              <button
-                className={`filter-toggle ${showFilters ? 'active' : ''} ${searchFilters.types.length > 0 || filteredPokemon.length > 0 ? 'active' : ''}`}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {filteredPokemon.length > 0 ? `Filters (${filteredPokemon.length})` : 'Filters'}
-              </button>
-            </div>
-
-            {showFilters && renderAdvancedFilters()}
-            {filteredPokemon.length > 0 && renderFilteredResults()}
-
-            {error && <div className="error">{error}</div>}
-            {loading && <div className="loading">Loading...</div>}
-            {pokemon && !filteredPokemon.length && (
-              <div className="pokemon-card">
-                <div className="pokemon-image">
-                  <img src={pokemon.sprites.front_default} alt={pokemon.name} />
-                </div>
-                <h2>{pokemon.name}</h2>
-                <div className="pokemon-types">
-                  {pokemon.types.map((type) => (
-                    <span
-                      key={type.type.name}
-                      className="type-badge"
-                      style={{ backgroundColor: typeColors[type.type.name] }}
-                    >
-                      {type.type.name}
-                    </span>
-                  ))}
-                </div>
-                <div className="action-buttons">
-                  <button className="add-to-team" onClick={addToTeam}>
-                    Add to Team
-                  </button>
-                  {isPokemonFavorite(pokemon.id) ? (
-                    <button
-                      className="remove-favorite"
-                      onClick={() => removeFromFavorites(pokemon.id)}
-                    >
-                      Remove from Favorites
-                    </button>
-                  ) : (
-                    <button className="add-to-favorites" onClick={addToFavorites}>
-                      Add to Favorites
-                    </button>
-                  )}
-                </div>
-                <div className="pokemon-details">
-                  <p>
-                    <strong>ID:</strong> #{pokemon.id}
-                  </p>
-                  <p>
-                    <strong>Height:</strong> {pokemon.height / 10}m
-                  </p>
-                  <p>
-                    <strong>Weight:</strong> {pokemon.weight / 10}kg
-                  </p>
-                  <p>
-                    <strong>Abilities:</strong>{' '}
-                    {pokemon.abilities.map((a) => a.ability.name).join(', ')}
-                  </p>
-                  <div className="stats-container">
-                    <h3>Base Stats</h3>
-                    {pokemon.stats.map((stat) => (
-                      <div key={stat.stat.name} className="stat-bar">
-                        <span className="stat-name">{stat.stat.name}:</span>
-                        <div className="stat-bar-container">
-                          <div
-                            className="stat-bar-fill"
-                            style={{ width: `${(stat.base_stat / 255) * 100}%` }}
-                          />
-                        </div>
-                        <span className="stat-value">{stat.base_stat}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="evolution-container">
-                    <h3>Evolution Chain</h3>
-                    {renderEvolutionChain()}
-                  </div>
-                  <div className="description">
-                    <h3>Description</h3>
-                    <p>{description}</p>
-                  </div>
-                </div>
-                <div className="navigation-buttons">
-                  <button onClick={handlePrevious} disabled={pokemon.id <= 1}>
-                    Previous
-                  </button>
-                  <button onClick={handleNext} disabled={pokemon.id >= 898}>
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+          <PokedexExplorer
+            pokemon={pokemon}
+            searchTerm={searchTerm}
+            error={error}
+            loading={loading}
+            description={description}
+            suggestions={suggestions}
+            showSuggestions={showSuggestions}
+            evolutionChain={evolutionChain}
+            loadingEvolution={loadingEvolution}
+            filteredPokemon={filteredPokemon}
+            showFilters={showFilters}
+            searchFilters={searchFilters}
+            isLoadingFiltered={isLoadingFiltered}
+            typeColors={typeColors}
+            allTypes={allTypes}
+            // Methods
+            setSearchTerm={setSearchTerm}
+            handleSearch={handleSearch}
+            handleRandom={handleRandom}
+            handleRandomLegendary={handleRandomLegendary}
+            handlePrevious={handlePrevious}
+            handleNext={handleNext}
+            handleSuggestionClick={handleSuggestionClick}
+            addToTeam={addToTeam}
+            addToFavorites={addToFavorites}
+            removeFromFavorites={removeFromFavorites}
+            isPokemonFavorite={isPokemonFavorite}
+            toggleTypeFilter={toggleTypeFilter}
+            applyFilters={applyFilters}
+            resetFilters={resetFilters}
+            setShowFilters={setShowFilters}
+            setSearchFilters={setSearchFilters}
+            viewPokemonDetails={viewPokemonDetails}
+            renderEvolutionChain={renderEvolutionChain}
+            renderAdvancedFilters={renderAdvancedFilters}
+            renderFilteredResults={renderFilteredResults}
+          />
         );
 
       case TABS.TEAM:
