@@ -2224,9 +2224,6 @@ function App() {
             filteredPokemon={filteredPokemon}
             showFilters={showFilters}
             searchFilters={searchFilters}
-            isLoadingFiltered={isLoadingFiltered}
-            typeColors={typeColors}
-            allTypes={allTypes}
             // Methods
             setSearchTerm={setSearchTerm}
             handleSearch={handleSearch}
@@ -2239,13 +2236,7 @@ function App() {
             addToFavorites={addToFavorites}
             removeFromFavorites={removeFromFavorites}
             isPokemonFavorite={isPokemonFavorite}
-            toggleTypeFilter={toggleTypeFilter}
-            applyFilters={applyFilters}
-            resetFilters={resetFilters}
             setShowFilters={setShowFilters}
-            setSearchFilters={setSearchFilters}
-            viewPokemonDetails={viewPokemonDetails}
-            renderEvolutionChain={renderEvolutionChain}
             renderAdvancedFilters={renderAdvancedFilters}
             renderFilteredResults={renderFilteredResults}
           />

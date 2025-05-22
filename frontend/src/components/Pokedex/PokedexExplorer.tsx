@@ -29,13 +29,6 @@ interface PokedexExplorerProps {
   filteredPokemon: Pokemon[];
   showFilters: boolean;
   searchFilters: SearchFilters; // Use the proper type
-  // Props needed for compatibility with App.tsx but not used in this component
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isLoadingFiltered: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  typeColors: Record<string, string>;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  allTypes: string[];
 
   // Methods
   setSearchTerm: (term: string) => void;
@@ -49,20 +42,7 @@ interface PokedexExplorerProps {
   addToFavorites: () => void;
   removeFromFavorites: (id: number) => void;
   isPokemonFavorite: (id: number) => boolean;
-  // Methods needed for compatibility with App.tsx but not used in this component
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  toggleTypeFilter: (type: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  applyFilters: (filters?: SearchFilters) => void; // Use the proper type
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  resetFilters: () => void;
   setShowFilters: (show: boolean) => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setSearchFilters: (filters: SearchFilters) => void; // Use the proper type
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  viewPokemonDetails: (pokemon: Pokemon) => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  renderEvolutionChain: () => React.ReactNode;
   renderAdvancedFilters: () => React.ReactNode;
   renderFilteredResults: () => React.ReactNode;
 }
@@ -80,12 +60,6 @@ const PokedexExplorer: React.FC<PokedexExplorerProps> = ({
   filteredPokemon,
   showFilters,
   searchFilters,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  isLoadingFiltered,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  typeColors,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  allTypes,
 
   // Methods
   setSearchTerm,
@@ -99,19 +73,7 @@ const PokedexExplorer: React.FC<PokedexExplorerProps> = ({
   addToFavorites,
   removeFromFavorites,
   isPokemonFavorite,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  toggleTypeFilter,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  applyFilters,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  resetFilters,
   setShowFilters,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setSearchFilters,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  viewPokemonDetails,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  renderEvolutionChain,
   renderAdvancedFilters,
   renderFilteredResults,
 }) => {
