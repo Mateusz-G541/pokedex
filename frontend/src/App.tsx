@@ -700,7 +700,7 @@ function App() {
       starter2: 255, // Torchic
       starter3: 258, // Mudkip
     },
-  ]);
+  ];
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
   // Fetch suggestions when search term changes
