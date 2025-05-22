@@ -4,6 +4,7 @@ import './App.css';
 import { RegionExplorer } from './components/Regions';
 import { PokedexExplorer } from './components/Pokedex';
 import { TeamView } from './components/Team';
+import { FavoritesView } from './components/Favorites';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
@@ -1086,6 +1087,7 @@ function App() {
     fetchDescription();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const renderEvolutionChain = () => {
     if (loadingEvolution) {
       return <div className="loading-evolution">Loading evolution chain...</div>;
@@ -2261,54 +2263,14 @@ function App() {
 
       case TABS.FAVORITES:
         return (
-          <div className="favorites-section">
-            <h2>My Favorites ({favorites.length})</h2>
-            {favoriteMessage && <div className="favorite-message">{favoriteMessage}</div>}
-
-            <div className="favorites-container">
-              {favorites.length === 0 ? (
-                <p className="empty-favorites">
-                  Your favorites list is empty. Add Pokémon to your favorites!
-                </p>
-              ) : (
-                <>
-                  <div className="favorites-grid">
-                    {favorites.map((favoritePokemon) => (
-                      <div key={favoritePokemon.id} className="favorite-pokemon">
-                        <img
-                          src={favoritePokemon.sprites.front_default}
-                          alt={favoritePokemon.name}
-                          onClick={() => viewPokemonDetails(favoritePokemon)}
-                          className="clickable-pokemon"
-                        />
-                        <p>{favoritePokemon.name}</p>
-                        <div className="favorite-pokemon-types">
-                          {favoritePokemon.types.map((type) => (
-                            <span
-                              key={type.type.name}
-                              className="favorite-type-badge"
-                              style={{ backgroundColor: typeColors[type.type.name] }}
-                            >
-                              {type.type.name}
-                            </span>
-                          ))}
-                        </div>
-                        <button
-                          className="remove-favorite"
-                          onClick={() => removeFromFavorites(favoritePokemon.id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="clear-favorites" onClick={clearFavorites}>
-                    Clear All
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <FavoritesView
+            favorites={favorites}
+            favoriteMessage={favoriteMessage}
+            typeColors={typeColors}
+            onViewPokemonDetails={viewPokemonDetails}
+            onRemoveFromFavorites={removeFromFavorites}
+            onClearFavorites={clearFavorites}
+          />
         );
 
       case TABS.BATTLE:

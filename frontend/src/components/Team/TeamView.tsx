@@ -18,7 +18,9 @@ interface TeamViewProps {
 const TeamView: React.FC<TeamViewProps> = ({
   team,
   teamMessage,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   teamAnalysis,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   recommendations,
   typeColors,
   onViewPokemonDetails,
