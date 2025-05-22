@@ -2473,10 +2473,10 @@ function App() {
               <button onClick={handleRandom}>Random</button>
               <button onClick={handleRandomLegendary}>Legendary</button>
               <button
-                className={`filter-toggle ${showFilters ? 'active' : ''}`}
+                className={`filter-toggle ${showFilters ? 'active' : ''} ${searchFilters.types.length > 0 || filteredPokemon.length > 0 ? 'active' : ''}`}
                 onClick={() => setShowFilters(!showFilters)}
               >
-                Filters
+                {filteredPokemon.length > 0 ? `Filters (${filteredPokemon.length})` : 'Filters'}
               </button>
             </div>
 
