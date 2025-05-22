@@ -16,9 +16,6 @@ interface PokedexExplorerProps {
   filteredPokemon: Pokemon[];
   showFilters: boolean;
   searchFilters: any;
-  isLoadingFiltered: boolean;
-  typeColors: Record<string, string>;
-  allTypes: string[];
 
   // Methods
   setSearchTerm: (term: string) => void;
@@ -32,13 +29,7 @@ interface PokedexExplorerProps {
   addToFavorites: () => void;
   removeFromFavorites: (id: number) => void;
   isPokemonFavorite: (id: number) => boolean;
-  toggleTypeFilter: (type: string) => void;
-  applyFilters: (filters?: any) => void;
-  resetFilters: () => void;
   setShowFilters: (show: boolean) => void;
-  setSearchFilters: (filters: any) => void;
-  viewPokemonDetails: (pokemon: Pokemon) => void;
-  renderEvolutionChain: () => React.ReactNode;
   renderAdvancedFilters: () => React.ReactNode;
   renderFilteredResults: () => React.ReactNode;
 }
@@ -56,9 +47,6 @@ const PokedexExplorer: React.FC<PokedexExplorerProps> = ({
   filteredPokemon,
   showFilters,
   searchFilters,
-  isLoadingFiltered,
-  typeColors,
-  allTypes,
 
   // Methods
   setSearchTerm,
@@ -72,13 +60,7 @@ const PokedexExplorer: React.FC<PokedexExplorerProps> = ({
   addToFavorites,
   removeFromFavorites,
   isPokemonFavorite,
-  toggleTypeFilter,
-  applyFilters,
-  resetFilters,
   setShowFilters,
-  setSearchFilters,
-  viewPokemonDetails,
-  renderEvolutionChain,
   renderAdvancedFilters,
   renderFilteredResults,
 }) => {
