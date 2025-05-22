@@ -440,8 +440,8 @@ function App() {
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
-  // Add state for regions with predefined data (no setter needed)
-  const regions = [
+  // Add state for regions with predefined data
+  const [regions, setRegions] = useState([
     {
       id: 1,
       name: 'Kanto',
@@ -697,7 +697,7 @@ function App() {
       starter2: 255, // Torchic
       starter3: 258, // Mudkip
     },
-  ];
+  ]);
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
   // Fetch suggestions when search term changes
@@ -795,6 +795,43 @@ function App() {
       prepareForBattle();
     }
   }, [activeTab, team]);
+
+  // Pre-load starter Pokémon images for region cards
+  useEffect(() => {
+    const loadStarterPokemonForRegions = async () => {
+      try {
+        setLoading(true);
+
+        // Create a new array to hold the updated regions
+        const updatedRegions = [...regions];
+
+        // Fetch starter Pokémon for each region
+        for (let i = 0; i < updatedRegions.length; i++) {
+          const region = updatedRegions[i];
+          if (region.starter1) {
+            try {
+              const response = await axios.get(`${API_URL}/api/pokemon/${region.starter1}`);
+              updatedRegions[i] = {
+                ...region,
+                thumbnailPokemon: response.data,
+              };
+            } catch (err) {
+              console.error(`Error fetching starter for region ${region.name}:`, err);
+            }
+          }
+        }
+
+        // Update the regions state with the Pokémon data
+        setRegions(updatedRegions);
+      } catch (err) {
+        console.error('Error loading starter Pokémon for regions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStarterPokemonForRegions();
+  }, []);
 
   const fetchPokemon = async (search: string | number) => {
     try {
@@ -2141,10 +2178,22 @@ function App() {
           <div className="regions-grid">
             {regions.map((region) => (
               <div key={region.id} className="region-card" onClick={() => selectRegion(region)}>
-                <div className="region-image-placeholder">
-                  <p>{region.name} Region</p>
-                  <small>First Pokémon: #{region.starter1}</small>
-                </div>
+                {region.thumbnailPokemon ? (
+                  <div className="region-image-container">
+                    <img
+                      src={region.thumbnailPokemon.sprites.front_default}
+                      alt={region.thumbnailPokemon.name}
+                      className="region-image pokemon-image"
+                    />
+                    <p className="pokemon-name">{region.thumbnailPokemon.name}</p>
+                    <small className="pokemon-id">#{region.thumbnailPokemon.id}</small>
+                  </div>
+                ) : (
+                  <div className="region-image-placeholder">
+                    <p>{region.name} Region</p>
+                    <small>First Pokémon: #{region.starter1}</small>
+                  </div>
+                )}
                 <h3>{region.name}</h3>
                 <p>{region.description.substring(0, 100)}...</p>
                 <button className="explore-button">Explore Region</button>

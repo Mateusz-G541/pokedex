@@ -1220,3 +1220,44 @@ button:disabled {
   height: auto;
   object-fit: contain;
 }
+
+/* Pokemon image in region cards */
+.region-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 180px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.pokemon-image {
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: contain;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 5px;
+}
+
+.pokemon-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  text-transform: capitalize;
+  margin: 0;
+  padding: 0;
+}
+
+.pokemon-id {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0;
+  padding: 0;
+}
