@@ -79,15 +79,16 @@ interface Pokemon {
   };
 }
 
-// Interface for evolution chain
-interface EvolutionChain {
-  chain: {
-    species: {
-      name: string;
-      url: string;
-    };
-    evolves_to: EvolvesTo[];
+interface EvolutionSpecies {
+  species: {
+    name: string;
+    url: string;
   };
+  evolves_to: EvolutionSpecies[];
+}
+
+interface EvolutionChain {
+  chain: EvolutionSpecies;
 }
 
 interface EvolvesTo {
@@ -341,14 +342,14 @@ interface BattleState {
 // Interface for advanced search filters
 interface SearchFilters {
   types: string[];
-  minAttack: number;
-  maxAttack: number;
-  minDefense: number;
-  maxDefense: number;
-  minHP: number;
-  maxHP: number;
-  minSpeed: number;
-  maxSpeed: number;
+  minAttack?: number;
+  maxAttack?: number;
+  minDefense?: number;
+  maxDefense?: number;
+  minHP?: number;
+  maxHP?: number;
+  minSpeed?: number;
+  maxSpeed?: number;
 }
 
 // Interface for region data
@@ -845,10 +846,13 @@ function App() {
       // Fetch description
       const speciesResponse = await axios.get(response.data.species.url);
       const flavorText = speciesResponse.data.flavor_text_entries.find(
-        (entry: any) => entry.language.name === 'en',
+        (entry: { language: { name: string }; flavor_text: string }) =>
+          entry.language.name === 'en',
       );
       setDescription(flavorText?.flavor_text || 'No description available.');
     } catch (err) {
+      // Log error and set error state
+      console.error('Error fetching Pokemon:', err);
       setError('Pokemon not found. Try another ID or name.');
       setPokemon(null);
       setDescription('');
@@ -884,7 +888,10 @@ function App() {
     const result: EvolutionData[] = [];
 
     // Helper function to traverse the evolution chain recursively
-    const traverseEvolutionChain = async (chain: any) => {
+    const traverseEvolutionChain = async (chain: {
+      species: { name: string; url: string };
+      evolves_to: EvolvesTo[];
+    }) => {
       try {
         // Extract the species ID from the URL
         const speciesId = chain.species.url.split('/').slice(-2, -1)[0];
@@ -938,10 +945,13 @@ function App() {
       // Fetch description
       const speciesResponse = await axios.get(response.data.species.url);
       const flavorText = speciesResponse.data.flavor_text_entries.find(
-        (entry: any) => entry.language.name === 'en',
+        (entry: { language: { name: string }; flavor_text: string }) =>
+          entry.language.name === 'en',
       );
       setDescription(flavorText?.flavor_text || 'No description available.');
     } catch (err) {
+      // Log error and set error state
+      console.error('Error fetching legendary Pokemon:', err);
       setError('Failed to fetch legendary Pokemon. Please try again.');
       setPokemon(null);
       setDescription('');
@@ -1057,12 +1067,18 @@ function App() {
       try {
         const speciesResponse = await axios.get(pokemon.species.url);
         const flavorText = speciesResponse.data.flavor_text_entries.find(
-          (entry: any) => entry.language.name === 'en',
+          (entry: { language: { name: string }; flavor_text: string }) =>
+            entry.language.name === 'en',
         );
         setDescription(flavorText?.flavor_text || 'No description available.');
       } catch (err) {
-        console.error('Error fetching description:', err);
-        setDescription('No description available.');
+        // Log error and set error state
+        console.error('Error fetching Pokemon:', err);
+        setError('Pokemon not found. Try another ID or name.');
+        setPokemon(null);
+        setDescription('');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -1544,7 +1560,7 @@ function App() {
       let newOpponentHP = prev.opponentHP;
       let newTurn = prev.turn;
       let battleResult = prev.battleResult;
-      let currentPlayerPokemon = prev.currentPlayerPokemon;
+      const currentPlayerPokemon = prev.currentPlayerPokemon;
       let currentOpponentPokemon = prev.currentOpponentPokemon;
       let playerTeam = [...prev.playerTeam];
       let opponentTeam = [...prev.opponentTeam];
@@ -1559,7 +1575,7 @@ function App() {
       }
 
       // Check if a Pokémon fainted
-      let additionalLogs: string[] = [];
+      const additionalLogs: string[] = [];
 
       if (newOpponentHP === 0) {
         additionalLogs.push(`${prev.currentOpponentPokemon?.name} fainted!`);
@@ -1752,17 +1768,33 @@ function App() {
         // Filter by stats
         const attackStat =
           pokemon.stats.find((stat) => stat.stat.name === 'attack')?.base_stat || 0;
-        if (attackStat < filters.minAttack || attackStat > filters.maxAttack) return false;
+        if (
+          (filters.minAttack !== undefined && attackStat < filters.minAttack) ||
+          (filters.maxAttack !== undefined && attackStat > filters.maxAttack)
+        )
+          return false;
 
         const defenseStat =
           pokemon.stats.find((stat) => stat.stat.name === 'defense')?.base_stat || 0;
-        if (defenseStat < filters.minDefense || defenseStat > filters.maxDefense) return false;
+        if (
+          (filters.minDefense !== undefined && defenseStat < filters.minDefense) ||
+          (filters.maxDefense !== undefined && defenseStat > filters.maxDefense)
+        )
+          return false;
 
         const hpStat = pokemon.stats.find((stat) => stat.stat.name === 'hp')?.base_stat || 0;
-        if (hpStat < filters.minHP || hpStat > filters.maxHP) return false;
+        if (
+          (filters.minHP !== undefined && hpStat < filters.minHP) ||
+          (filters.maxHP !== undefined && hpStat > filters.maxHP)
+        )
+          return false;
 
         const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed')?.base_stat || 0;
-        if (speedStat < filters.minSpeed || speedStat > filters.maxSpeed) return false;
+        if (
+          (filters.minSpeed !== undefined && speedStat < filters.minSpeed) ||
+          (filters.maxSpeed !== undefined && speedStat > filters.maxSpeed)
+        )
+          return false;
 
         return true;
       });
