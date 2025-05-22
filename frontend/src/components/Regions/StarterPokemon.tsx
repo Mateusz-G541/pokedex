@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
-// import { typeColors } from '../../constants/typeColors';
+import { typeColors } from '../../constants/typeColors';
 
 interface StarterPokemonProps {
   pokemon: Pokemon;

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { GymLeader as GymLeaderType } from './types';
-// import { typeColors } from '../../constants/typeColors';
+import { typeColors } from '../../constants/typeColors';
 
 interface GymLeaderProps {
   leader: GymLeaderType;
