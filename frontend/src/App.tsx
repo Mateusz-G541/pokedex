@@ -332,7 +332,7 @@ interface BattleState {
   battleLog: string[];
   isBattleActive: boolean;
   battleResult: 'ongoing' | 'win' | 'lose' | null;
-  turn: 'player' | 'opponent';
+  turn: 'player' | 'opponent' | 'selection';
 }
 
 // Interface for advanced search filters
@@ -1148,6 +1148,7 @@ function App() {
   };
 
   // Helper function to get speed stat
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getSpeedStat = (pokemon: Pokemon): number => {
     const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed');
     return speedStat ? speedStat.base_stat : 50;
@@ -1776,7 +1777,9 @@ function App() {
         {battleState.turn === 'opponent' &&
           battleState.isBattleActive &&
           !battleState.battleResult && (
-            <div style={{ display: 'none' }}>{setTimeout(() => executeAttack(false), 1500)}</div>
+            <div style={{ display: 'none' }}>
+              {setTimeout(() => executeAttack(false), 1500) && null}
+            </div>
           )}
       </div>
     );
