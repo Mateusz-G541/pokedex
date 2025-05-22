@@ -35,6 +35,7 @@ const TABS = {
   POKEDEX: 'pokedex',
   TEAM: 'team',
   FAVORITES: 'favorites',
+  BATTLE: 'battle',
 } as const;
 
 // Type for tabs
@@ -320,6 +321,33 @@ interface PokemonRecommendation {
   examples: string[];
 }
 
+// Interface for battle state
+interface BattleState {
+  playerTeam: Pokemon[];
+  opponentTeam: Pokemon[];
+  currentPlayerPokemon: Pokemon | null;
+  currentOpponentPokemon: Pokemon | null;
+  playerHP: number;
+  opponentHP: number;
+  battleLog: string[];
+  isBattleActive: boolean;
+  battleResult: 'ongoing' | 'win' | 'lose' | null;
+  turn: 'player' | 'opponent';
+}
+
+// Interface for advanced search filters
+interface SearchFilters {
+  types: string[];
+  minAttack: number;
+  maxAttack: number;
+  minDefense: number;
+  maxDefense: number;
+  minHP: number;
+  maxHP: number;
+  minSpeed: number;
+  maxSpeed: number;
+}
+
 function App() {
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -345,6 +373,36 @@ function App() {
     vulnerableTo: [],
   });
   const [recommendations, setRecommendations] = useState<PokemonRecommendation[]>([]);
+
+  // Add new state variables for battle simulator
+  const [battleState, setBattleState] = useState<BattleState>({
+    playerTeam: [],
+    opponentTeam: [],
+    currentPlayerPokemon: null,
+    currentOpponentPokemon: null,
+    playerHP: 0,
+    opponentHP: 0,
+    battleLog: [],
+    isBattleActive: false,
+    battleResult: null,
+    turn: 'player',
+  });
+
+  // Add state for advanced search filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+    types: [],
+    minAttack: 0,
+    maxAttack: 255,
+    minDefense: 0,
+    maxDefense: 255,
+    minHP: 0,
+    maxHP: 255,
+    minSpeed: 0,
+    maxSpeed: 255,
+  });
+  const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
+  const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -434,6 +492,13 @@ function App() {
       setRecommendations([]);
     }
   }, [team]);
+
+  // Set battle state when navigating to battle tab
+  useEffect(() => {
+    if (activeTab === TABS.BATTLE && !battleState.isBattleActive && team.length > 0) {
+      prepareForBattle();
+    }
+  }, [activeTab, team]);
 
   const fetchPokemon = async (search: string | number) => {
     try {
@@ -1001,6 +1066,723 @@ function App() {
     );
   };
 
+  // Function to prepare for battle
+  const prepareForBattle = async () => {
+    if (team.length === 0) return;
+
+    // Reset battle state
+    setBattleState({
+      ...battleState,
+      playerTeam: [...team],
+      opponentTeam: [],
+      currentPlayerPokemon: null,
+      currentOpponentPokemon: null,
+      playerHP: 0,
+      opponentHP: 0,
+      battleLog: ['Battle is about to begin!'],
+      isBattleActive: false,
+      battleResult: null,
+      turn: 'player',
+    });
+
+    // Generate random opponent team (3 random Pokémon)
+    const opponentTeam: Pokemon[] = [];
+
+    setIsLoadingFiltered(true);
+    try {
+      for (let i = 0; i < 3; i++) {
+        const randomId = Math.floor(Math.random() * 898) + 1;
+        const response = await axios.get(`${API_URL}/api/pokemon/${randomId}`);
+        opponentTeam.push(response.data);
+      }
+
+      setBattleState((prev) => ({
+        ...prev,
+        opponentTeam,
+        currentPlayerPokemon: team[0],
+        currentOpponentPokemon: opponentTeam[0],
+        playerHP: getMaxHP(team[0]),
+        opponentHP: getMaxHP(opponentTeam[0]),
+        battleLog: [...prev.battleLog, 'Choose your first Pokémon!'],
+      }));
+    } catch (error) {
+      console.error('Error generating opponent team:', error);
+    } finally {
+      setIsLoadingFiltered(false);
+    }
+  };
+
+  // Start battle with selected Pokémon
+  const startBattle = (playerPokemon: Pokemon) => {
+    if (!battleState.opponentTeam.length) return;
+
+    setBattleState((prev) => ({
+      ...prev,
+      currentPlayerPokemon: playerPokemon,
+      playerHP: getMaxHP(playerPokemon),
+      isBattleActive: true,
+      battleLog: [
+        ...prev.battleLog,
+        `Go ${playerPokemon.name}!`,
+        `Opponent sends out ${prev.currentOpponentPokemon?.name}!`,
+      ],
+    }));
+  };
+
+  // Helper function to get max HP
+  const getMaxHP = (pokemon: Pokemon): number => {
+    const hpStat = pokemon.stats.find((stat) => stat.stat.name === 'hp');
+    return hpStat ? hpStat.base_stat * 2 : 100; // Double the base HP for longer battles
+  };
+
+  // Helper function to get attack stat
+  const getAttackStat = (pokemon: Pokemon): number => {
+    const attackStat = pokemon.stats.find((stat) => stat.stat.name === 'attack');
+    return attackStat ? attackStat.base_stat : 50;
+  };
+
+  // Helper function to get defense stat
+  const getDefenseStat = (pokemon: Pokemon): number => {
+    const defenseStat = pokemon.stats.find((stat) => stat.stat.name === 'defense');
+    return defenseStat ? defenseStat.base_stat : 50;
+  };
+
+  // Helper function to get speed stat
+  const getSpeedStat = (pokemon: Pokemon): number => {
+    const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed');
+    return speedStat ? speedStat.base_stat : 50;
+  };
+
+  // Calculate type effectiveness for battle
+  const calculateTypeEffectiveness = (attackerTypes: string[], defenderTypes: string[]): number => {
+    let effectiveness = 1;
+
+    attackerTypes.forEach((attackType) => {
+      defenderTypes.forEach((defendType) => {
+        const multiplier = typeEffectiveness[attackType]?.[defendType] || 1;
+        effectiveness *= multiplier;
+      });
+    });
+
+    return effectiveness;
+  };
+
+  // Execute a battle attack
+  const executeAttack = (isPlayerAttacking: boolean) => {
+    if (!battleState.currentPlayerPokemon || !battleState.currentOpponentPokemon) return;
+
+    const attacker = isPlayerAttacking
+      ? battleState.currentPlayerPokemon
+      : battleState.currentOpponentPokemon;
+    const defender = isPlayerAttacking
+      ? battleState.currentOpponentPokemon
+      : battleState.currentPlayerPokemon;
+
+    const attackerTypes = attacker.types.map((t) => t.type.name);
+    const defenderTypes = defender.types.map((t) => t.type.name);
+
+    const effectiveness = calculateTypeEffectiveness(attackerTypes, defenderTypes);
+    const attackStat = getAttackStat(attacker);
+    const defenseStat = getDefenseStat(defender);
+
+    // Calculate damage with some randomness
+    let damage = Math.floor(
+      (attackStat / defenseStat) * 20 * effectiveness * (0.85 + Math.random() * 0.3),
+    );
+    damage = Math.max(1, damage); // Minimum 1 damage
+
+    let effectivenessText = '';
+    if (effectiveness > 1) {
+      effectivenessText = "It's super effective!";
+    } else if (effectiveness < 1 && effectiveness > 0) {
+      effectivenessText = "It's not very effective...";
+    } else if (effectiveness === 0) {
+      effectivenessText = 'It has no effect!';
+      damage = 0;
+    }
+
+    const newLogs = [`${attacker.name} attacks!`];
+    if (effectivenessText) newLogs.push(effectivenessText);
+    newLogs.push(`${defender.name} takes ${damage} damage!`);
+
+    setBattleState((prev) => {
+      let newPlayerHP = prev.playerHP;
+      let newOpponentHP = prev.opponentHP;
+      let newTurn = prev.turn;
+      let battleResult = prev.battleResult;
+      let currentPlayerPokemon = prev.currentPlayerPokemon;
+      let currentOpponentPokemon = prev.currentOpponentPokemon;
+      let playerTeam = [...prev.playerTeam];
+      let opponentTeam = [...prev.opponentTeam];
+
+      // Update HP based on who is attacking
+      if (isPlayerAttacking) {
+        newOpponentHP = Math.max(0, prev.opponentHP - damage);
+        newTurn = 'opponent';
+      } else {
+        newPlayerHP = Math.max(0, prev.playerHP - damage);
+        newTurn = 'player';
+      }
+
+      // Check if a Pokémon fainted
+      let additionalLogs: string[] = [];
+
+      if (newOpponentHP === 0) {
+        additionalLogs.push(`${prev.currentOpponentPokemon?.name} fainted!`);
+
+        // Remove fainted Pokémon from opponent team
+        const newOpponentTeam = opponentTeam.filter((p) => p.id !== currentOpponentPokemon?.id);
+        opponentTeam = newOpponentTeam;
+
+        // Check if battle is over
+        if (newOpponentTeam.length === 0) {
+          additionalLogs.push('You won the battle!');
+          battleResult = 'win';
+        } else {
+          // Send out next opponent Pokémon
+          currentOpponentPokemon = newOpponentTeam[0];
+          newOpponentHP = getMaxHP(newOpponentTeam[0]);
+          additionalLogs.push(`Opponent sends out ${newOpponentTeam[0].name}!`);
+        }
+      }
+
+      if (newPlayerHP === 0) {
+        additionalLogs.push(`${prev.currentPlayerPokemon?.name} fainted!`);
+
+        // Remove fainted Pokémon from player team
+        const newPlayerTeam = playerTeam.filter((p) => p.id !== currentPlayerPokemon?.id);
+        playerTeam = newPlayerTeam;
+
+        // Check if battle is over
+        if (newPlayerTeam.length === 0) {
+          additionalLogs.push('You lost the battle!');
+          battleResult = 'lose';
+        } else {
+          // Player needs to select next Pokémon
+          newTurn = 'selection';
+          additionalLogs.push('Select your next Pokémon!');
+        }
+      }
+
+      return {
+        ...prev,
+        playerHP: newPlayerHP,
+        opponentHP: newOpponentHP,
+        turn: newTurn,
+        battleLog: [...prev.battleLog, ...newLogs, ...additionalLogs],
+        battleResult,
+        currentPlayerPokemon,
+        currentOpponentPokemon,
+        playerTeam,
+        opponentTeam,
+      };
+    });
+  };
+
+  // Switch player's Pokémon
+  const switchPokemon = (newPokemon: Pokemon) => {
+    if (!battleState.isBattleActive) {
+      startBattle(newPokemon);
+      return;
+    }
+
+    setBattleState((prev) => ({
+      ...prev,
+      currentPlayerPokemon: newPokemon,
+      playerHP: getMaxHP(newPokemon),
+      battleLog: [
+        ...prev.battleLog,
+        `You withdrew ${prev.currentPlayerPokemon?.name}!`,
+        `Go ${newPokemon.name}!`,
+      ],
+      turn: 'opponent',
+    }));
+
+    // Opponent attacks after player switches
+    setTimeout(() => {
+      executeAttack(false);
+    }, 1500);
+  };
+
+  // Reset battle
+  const resetBattle = () => {
+    setBattleState({
+      playerTeam: [],
+      opponentTeam: [],
+      currentPlayerPokemon: null,
+      currentOpponentPokemon: null,
+      playerHP: 0,
+      opponentHP: 0,
+      battleLog: [],
+      isBattleActive: false,
+      battleResult: null,
+      turn: 'player',
+    });
+
+    prepareForBattle();
+  };
+
+  // Function to apply advanced search filters
+  const applyFilters = async () => {
+    if (
+      searchFilters.types.length === 0 &&
+      searchFilters.minAttack === 0 &&
+      searchFilters.maxAttack === 255 &&
+      searchFilters.minDefense === 0 &&
+      searchFilters.maxDefense === 255 &&
+      searchFilters.minHP === 0 &&
+      searchFilters.maxHP === 255 &&
+      searchFilters.minSpeed === 0 &&
+      searchFilters.maxSpeed === 255
+    ) {
+      setFilteredPokemon([]);
+      return;
+    }
+
+    setIsLoadingFiltered(true);
+
+    try {
+      // Fetch a sample of Pokémon to filter (for demo purposes)
+      const fetchedPokemon: Pokemon[] = [];
+
+      for (let i = 1; i <= 150; i++) {
+        try {
+          const response = await axios.get(`${API_URL}/api/pokemon/${i}`);
+          fetchedPokemon.push(response.data);
+        } catch (error) {
+          console.error(`Error fetching pokemon ${i}:`, error);
+        }
+      }
+
+      // Apply filters
+      const filtered = fetchedPokemon.filter((pokemon) => {
+        // Filter by type if types are selected
+        if (searchFilters.types.length > 0) {
+          const pokemonTypes = pokemon.types.map((t) => t.type.name);
+          const hasMatchingType = pokemonTypes.some((type) => searchFilters.types.includes(type));
+          if (!hasMatchingType) return false;
+        }
+
+        // Filter by stats
+        const attackStat =
+          pokemon.stats.find((stat) => stat.stat.name === 'attack')?.base_stat || 0;
+        if (attackStat < searchFilters.minAttack || attackStat > searchFilters.maxAttack)
+          return false;
+
+        const defenseStat =
+          pokemon.stats.find((stat) => stat.stat.name === 'defense')?.base_stat || 0;
+        if (defenseStat < searchFilters.minDefense || defenseStat > searchFilters.maxDefense)
+          return false;
+
+        const hpStat = pokemon.stats.find((stat) => stat.stat.name === 'hp')?.base_stat || 0;
+        if (hpStat < searchFilters.minHP || hpStat > searchFilters.maxHP) return false;
+
+        const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed')?.base_stat || 0;
+        if (speedStat < searchFilters.minSpeed || speedStat > searchFilters.maxSpeed) return false;
+
+        return true;
+      });
+
+      setFilteredPokemon(filtered);
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    } finally {
+      setIsLoadingFiltered(false);
+    }
+  };
+
+  // Toggle type filter
+  const toggleTypeFilter = (type: string) => {
+    setSearchFilters((prev) => {
+      if (prev.types.includes(type)) {
+        return {
+          ...prev,
+          types: prev.types.filter((t) => t !== type),
+        };
+      } else {
+        return {
+          ...prev,
+          types: [...prev.types, type],
+        };
+      }
+    });
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setSearchFilters({
+      types: [],
+      minAttack: 0,
+      maxAttack: 255,
+      minDefense: 0,
+      maxDefense: 255,
+      minHP: 0,
+      maxHP: 255,
+      minSpeed: 0,
+      maxSpeed: 255,
+    });
+    setFilteredPokemon([]);
+  };
+
+  // Render advanced search filters
+  const renderAdvancedFilters = () => {
+    return (
+      <div className="advanced-filters">
+        <div className="filters-header">
+          <h3>Advanced Filters</h3>
+          <button className="reset-filters" onClick={resetFilters}>
+            Reset
+          </button>
+        </div>
+
+        <div className="filter-section">
+          <h4>Types</h4>
+          <div className="type-filter-grid">
+            {allTypes.map((type) => (
+              <div
+                key={type}
+                className={`type-filter ${searchFilters.types.includes(type) ? 'active' : ''}`}
+                style={{
+                  backgroundColor: searchFilters.types.includes(type)
+                    ? typeColors[type]
+                    : '#f0f0f0',
+                  color: searchFilters.types.includes(type) ? 'white' : '#333',
+                }}
+                onClick={() => toggleTypeFilter(type)}
+              >
+                {type}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="filter-section">
+          <h4>Stats</h4>
+
+          <div className="stat-filter">
+            <span>HP:</span>
+            <div className="stat-range">
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.minHP}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, minHP: parseInt(e.target.value) }))
+                }
+              />
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.maxHP}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, maxHP: parseInt(e.target.value) }))
+                }
+              />
+            </div>
+            <div className="stat-values">
+              <span>{searchFilters.minHP}</span>
+              <span>{searchFilters.maxHP}</span>
+            </div>
+          </div>
+
+          <div className="stat-filter">
+            <span>Attack:</span>
+            <div className="stat-range">
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.minAttack}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, minAttack: parseInt(e.target.value) }))
+                }
+              />
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.maxAttack}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, maxAttack: parseInt(e.target.value) }))
+                }
+              />
+            </div>
+            <div className="stat-values">
+              <span>{searchFilters.minAttack}</span>
+              <span>{searchFilters.maxAttack}</span>
+            </div>
+          </div>
+
+          <div className="stat-filter">
+            <span>Defense:</span>
+            <div className="stat-range">
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.minDefense}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, minDefense: parseInt(e.target.value) }))
+                }
+              />
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.maxDefense}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, maxDefense: parseInt(e.target.value) }))
+                }
+              />
+            </div>
+            <div className="stat-values">
+              <span>{searchFilters.minDefense}</span>
+              <span>{searchFilters.maxDefense}</span>
+            </div>
+          </div>
+
+          <div className="stat-filter">
+            <span>Speed:</span>
+            <div className="stat-range">
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.minSpeed}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, minSpeed: parseInt(e.target.value) }))
+                }
+              />
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={searchFilters.maxSpeed}
+                onChange={(e) =>
+                  setSearchFilters((prev) => ({ ...prev, maxSpeed: parseInt(e.target.value) }))
+                }
+              />
+            </div>
+            <div className="stat-values">
+              <span>{searchFilters.minSpeed}</span>
+              <span>{searchFilters.maxSpeed}</span>
+            </div>
+          </div>
+        </div>
+
+        <button className="apply-filters" onClick={applyFilters}>
+          Apply Filters
+        </button>
+      </div>
+    );
+  };
+
+  // Render the filtered Pokémon results
+  const renderFilteredResults = () => {
+    if (isLoadingFiltered) {
+      return <div className="loading">Loading filtered results...</div>;
+    }
+
+    if (filteredPokemon.length === 0) {
+      return (
+        <p className="no-results">No Pokémon match your filters. Try adjusting your criteria.</p>
+      );
+    }
+
+    return (
+      <div className="filtered-results">
+        <h3>Results ({filteredPokemon.length} Pokémon)</h3>
+        <div className="pokemon-grid">
+          {filteredPokemon.map((pokemon) => (
+            <div
+              key={pokemon.id}
+              className="pokemon-card-small"
+              onClick={() => viewPokemonDetails(pokemon)}
+            >
+              <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+              <p>{pokemon.name}</p>
+              <div className="pokemon-types-small">
+                {pokemon.types.map((type) => (
+                  <span
+                    key={type.type.name}
+                    className="type-badge-small"
+                    style={{ backgroundColor: typeColors[type.type.name] }}
+                  >
+                    {type.type.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Render battle simulator
+  const renderBattleSimulator = () => {
+    if (team.length === 0) {
+      return (
+        <div className="battle-section">
+          <div className="battle-message">
+            <h3>Battle Simulator</h3>
+            <p>You need to add Pokémon to your team before you can battle!</p>
+            <button className="tab-button" onClick={() => setActiveTab(TABS.TEAM)}>
+              Go to Team
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (isLoadingFiltered) {
+      return <div className="loading">Preparing for battle...</div>;
+    }
+
+    return (
+      <div className="battle-section">
+        <h2>Battle Simulator</h2>
+
+        {battleState.battleResult && (
+          <div className={`battle-result ${battleState.battleResult}`}>
+            <h3>{battleState.battleResult === 'win' ? 'Victory!' : 'Defeat!'}</h3>
+            <button className="battle-again" onClick={resetBattle}>
+              Battle Again
+            </button>
+          </div>
+        )}
+
+        {!battleState.battleResult && (
+          <div className="battle-arena">
+            <div className="opponent-area">
+              {battleState.currentOpponentPokemon && (
+                <>
+                  <div className="pokemon-battle">
+                    <img
+                      src={battleState.currentOpponentPokemon.sprites.front_default}
+                      alt={battleState.currentOpponentPokemon.name}
+                    />
+                    <div className="battle-info">
+                      <p>{battleState.currentOpponentPokemon.name}</p>
+                      <div className="hp-bar">
+                        <div
+                          className="hp-fill"
+                          style={{
+                            width: `${(battleState.opponentHP / getMaxHP(battleState.currentOpponentPokemon)) * 100}%`,
+                            backgroundColor:
+                              battleState.opponentHP <
+                              getMaxHP(battleState.currentOpponentPokemon) * 0.2
+                                ? '#e74c3c'
+                                : battleState.opponentHP <
+                                    getMaxHP(battleState.currentOpponentPokemon) * 0.5
+                                  ? '#f39c12'
+                                  : '#2ecc71',
+                          }}
+                        ></div>
+                      </div>
+                      <p className="hp-text">
+                        {battleState.opponentHP} / {getMaxHP(battleState.currentOpponentPokemon)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="opponent-team-preview">
+                    {battleState.opponentTeam.map((pokemon) => (
+                      <div
+                        key={pokemon.id}
+                        className={`team-preview-pokemon ${pokemon.id === battleState.currentOpponentPokemon?.id ? 'active' : ''}`}
+                      >
+                        <img
+                          src={pokemon.sprites.front_default}
+                          alt={pokemon.name}
+                          className={
+                            pokemon.id === battleState.currentOpponentPokemon?.id ? 'active' : ''
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="battle-log">
+              <div className="log-entries">
+                {battleState.battleLog.slice(-6).map((log, index) => (
+                  <p key={index} className="log-entry">
+                    {log}
+                  </p>
+                ))}
+              </div>
+
+              {battleState.isBattleActive &&
+                battleState.turn === 'player' &&
+                !battleState.battleResult && (
+                  <div className="battle-controls">
+                    <button className="attack-button" onClick={() => executeAttack(true)}>
+                      Attack
+                    </button>
+                    <button
+                      className="switch-button"
+                      onClick={() => setBattleState((prev) => ({ ...prev, turn: 'selection' }))}
+                    >
+                      Switch
+                    </button>
+                  </div>
+                )}
+            </div>
+
+            <div className="player-area">
+              <div className="player-team">
+                {battleState.playerTeam.map((pokemon) => (
+                  <div
+                    key={pokemon.id}
+                    className={`player-pokemon ${pokemon.id === battleState.currentPlayerPokemon?.id ? 'active' : ''} ${battleState.turn === 'selection' ? 'selectable' : ''}`}
+                    onClick={() => battleState.turn === 'selection' && switchPokemon(pokemon)}
+                  >
+                    <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+                    <p>{pokemon.name}</p>
+                    {pokemon.id === battleState.currentPlayerPokemon?.id && (
+                      <div className="hp-bar">
+                        <div
+                          className="hp-fill"
+                          style={{
+                            width: `${(battleState.playerHP / getMaxHP(pokemon)) * 100}%`,
+                            backgroundColor:
+                              battleState.playerHP < getMaxHP(pokemon) * 0.2
+                                ? '#e74c3c'
+                                : battleState.playerHP < getMaxHP(pokemon) * 0.5
+                                  ? '#f39c12'
+                                  : '#2ecc71',
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {!battleState.isBattleActive && !battleState.battleResult && (
+                <div className="battle-start">
+                  <p>Select your first Pokémon to start the battle!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Auto-attack for opponent's turn */}
+        {battleState.turn === 'opponent' &&
+          battleState.isBattleActive &&
+          !battleState.battleResult && (
+            <div style={{ display: 'none' }}>{setTimeout(() => executeAttack(false), 1500)}</div>
+          )}
+      </div>
+    );
+  };
+
+  // Update the renderTabContent function to include the battle tab and advanced search
   const renderTabContent = () => {
     switch (activeTab) {
       case TABS.POKEDEX:
@@ -1034,11 +1816,20 @@ function App() {
               <button onClick={handleSearch}>Search</button>
               <button onClick={handleRandom}>Random</button>
               <button onClick={handleRandomLegendary}>Legendary</button>
+              <button
+                className={`filter-toggle ${showFilters ? 'active' : ''}`}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                Filters
+              </button>
             </div>
+
+            {showFilters && renderAdvancedFilters()}
+            {filteredPokemon.length > 0 && renderFilteredResults()}
 
             {error && <div className="error">{error}</div>}
             {loading && <div className="loading">Loading...</div>}
-            {pokemon && (
+            {pokemon && !filteredPokemon.length && (
               <div className="pokemon-card">
                 <div className="pokemon-image">
                   <img src={pokemon.sprites.front_default} alt={pokemon.name} />
@@ -1229,6 +2020,9 @@ function App() {
           </div>
         );
 
+      case TABS.BATTLE:
+        return renderBattleSimulator();
+
       default:
         return null;
     }
@@ -1256,6 +2050,12 @@ function App() {
           onClick={() => setActiveTab(TABS.FAVORITES)}
         >
           Favorites ({favorites.length})
+        </button>
+        <button
+          className={`tab ${activeTab === TABS.BATTLE ? 'active' : ''}`}
+          onClick={() => setActiveTab(TABS.BATTLE)}
+        >
+          Battle
         </button>
       </div>
 
