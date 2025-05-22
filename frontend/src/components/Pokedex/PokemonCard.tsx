@@ -20,8 +20,6 @@ interface PokemonCardProps {
 const PokemonCard: React.FC<PokemonCardProps> = ({
   pokemon,
   description,
-  evolutionChain,
-  loadingEvolution,
   isPokemonFavorite,
   onAddToTeam,
   onAddToFavorites,
