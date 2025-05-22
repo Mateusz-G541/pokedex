@@ -441,6 +441,7 @@ function App() {
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
 
   // Add state for regions
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [regions, setRegions] = useState<Region[]>([
     {
       id: 1,
@@ -2204,7 +2205,10 @@ function App() {
                     </div>
                     <button
                       className="view-pokemon-details"
-                      onClick={() => viewPokemonDetails(selectedRegion.starter1Pokemon)}
+                      onClick={() =>
+                        selectedRegion.starter1Pokemon &&
+                        viewPokemonDetails(selectedRegion.starter1Pokemon)
+                      }
                     >
                       View Details
                     </button>
@@ -2231,7 +2235,10 @@ function App() {
                     </div>
                     <button
                       className="view-pokemon-details"
-                      onClick={() => viewPokemonDetails(selectedRegion.starter2Pokemon)}
+                      onClick={() =>
+                        selectedRegion.starter2Pokemon &&
+                        viewPokemonDetails(selectedRegion.starter2Pokemon)
+                      }
                     >
                       View Details
                     </button>
@@ -2258,7 +2265,10 @@ function App() {
                     </div>
                     <button
                       className="view-pokemon-details"
-                      onClick={() => viewPokemonDetails(selectedRegion.starter3Pokemon)}
+                      onClick={() =>
+                        selectedRegion.starter3Pokemon &&
+                        viewPokemonDetails(selectedRegion.starter3Pokemon)
+                      }
                     >
                       View Details
                     </button>
