@@ -447,8 +447,7 @@ function App() {
       name: 'Kanto',
       description:
         'The first Pokémon region, home to the original 151 Pokémon. A traditional Japanese-inspired region with diverse landscapes from mountains to seas.',
-      image:
-        'https://archives.bulbagarden.net/media/upload/thumb/2/25/LGPE_Kanto_Map.png/800px-LGPE_Kanto_Map.png',
+      image: 'https://staticg.sportskeeda.com/editor/2021/02/c1b62-16136310225972-800.jpg',
       pokedexRange: { start: 1, end: 151 },
       gymLeaders: [
         {
@@ -532,8 +531,7 @@ function App() {
       name: 'Johto',
       description:
         'A region west of Kanto, featuring new Pokémon and a deep connection to legends and traditions.',
-      image:
-        'https://archives.bulbagarden.net/media/upload/thumb/6/64/JohtoMap.png/800px-JohtoMap.png',
+      image: 'https://archives.bulbagarden.net/media/upload/3/32/HeartGold_SoulSilver_Johto.png',
       pokedexRange: { start: 152, end: 251 },
       gymLeaders: [
         {
@@ -619,8 +617,7 @@ function App() {
       name: 'Hoenn',
       description:
         'A region with diverse natural environments, from dense rainforests to volcanic areas and beaches.',
-      image:
-        'https://archives.bulbagarden.net/media/upload/thumb/8/85/Hoenn_ORAS.png/800px-Hoenn_ORAS.png',
+      image: 'https://i.redd.it/3j5b5w0qnbc51.jpg',
       pokedexRange: { start: 252, end: 386 },
       gymLeaders: [
         {
