@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import { RegionExplorer } from './components/Regions';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
@@ -698,7 +699,7 @@ function App() {
       starter3: 258, // Mudkip
     },
   ]);
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  // selectedRegion state is now in the RegionExplorer component
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -1666,30 +1667,29 @@ function App() {
 
       setIsLoadingFiltered(true);
       try {
-        // Fetch list of all Pokémon in a single request
-        const response = await axios.get(`${API_URL}/api/pokemon?limit=151`);
-        const pokemonList = response.data.results;
+        // The bulk loading API call is causing 500 errors
+        // Instead of trying to load all Pokémon at once, we'll set cache as loaded
+        // and load Pokémon individually when needed
 
-        // Fetch details for all Pokémon in parallel (batch of 20 at a time to avoid rate limits)
+        // Create a small initial cache with known starter Pokémon
+        const starterIds = [1, 4, 7, 25]; // Bulbasaur, Charmander, Squirtle, Pikachu
         const pokemonDetails: Pokemon[] = [];
-        const batchSize = 20;
 
-        for (let i = 0; i < pokemonList.length; i += batchSize) {
-          const batch = pokemonList.slice(i, i + batchSize);
-          const batchPromises = batch.map((p: any) =>
-            axios.get(`${API_URL}/api/pokemon/${p.name}`),
-          );
-
-          const batchResults = await Promise.all(batchPromises);
-          batchResults.forEach((result) => {
-            pokemonDetails.push(result.data);
-          });
+        for (const id of starterIds) {
+          try {
+            const response = await axios.get(`${API_URL}/api/pokemon/${id}`);
+            pokemonDetails.push(response.data);
+          } catch (err) {
+            console.error(`Error fetching starter Pokémon ${id}:`, err);
+          }
         }
 
         setAllPokemonCache(pokemonDetails);
         setIsCacheLoaded(true);
       } catch (error) {
         console.error('Error loading Pokémon cache:', error);
+        // Even if there's an error, mark cache as loaded to prevent repeated attempts
+        setIsCacheLoaded(true);
       } finally {
         setIsLoadingFiltered(false);
       }
@@ -2169,271 +2169,9 @@ function App() {
     );
   };
 
-  // Function to fetch starter Pokémon data
-  const fetchRegionStarters = async (region: Region) => {
-    try {
-      setLoading(true);
+  // Functions for fetching region starters and selecting regions are now in the RegionExplorer component
 
-      // Create a copy of the region to update
-      const updatedRegion = { ...region };
-
-      // Fetch starter Pokémon data if they have starter IDs
-      if (region.starter1) {
-        const starter1Response = await axios.get(`${API_URL}/api/pokemon/${region.starter1}`);
-        updatedRegion.starter1Pokemon = starter1Response.data;
-
-        // Also use the first starter as the region thumbnail
-        updatedRegion.thumbnailPokemon = starter1Response.data;
-      }
-
-      if (region.starter2) {
-        const starter2Response = await axios.get(`${API_URL}/api/pokemon/${region.starter2}`);
-        updatedRegion.starter2Pokemon = starter2Response.data;
-      }
-
-      if (region.starter3) {
-        const starter3Response = await axios.get(`${API_URL}/api/pokemon/${region.starter3}`);
-        updatedRegion.starter3Pokemon = starter3Response.data;
-      }
-
-      // Update the selected region with the starter Pokémon data
-      setSelectedRegion(updatedRegion);
-    } catch (err) {
-      console.error('Error fetching starter Pokémon:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to select a region
-  const selectRegion = (region: Region) => {
-    setSelectedRegion(region);
-    fetchRegionStarters(region);
-  };
-
-  // Function to render the region explorer
-  const renderRegionExplorer = () => {
-    if (loading) {
-      return <div className="loading">Loading region data...</div>;
-    }
-
-    if (!selectedRegion) {
-      return (
-        <div className="regions-list">
-          <h2>Pokémon Regions</h2>
-          <p className="regions-intro">
-            Explore the different regions of the Pokémon world, each with their own unique Pokémon,
-            Gym Leaders, and landmarks.
-          </p>
-          <div className="regions-grid">
-            {regions.map((region) => (
-              <div key={region.id} className="region-card" onClick={() => selectRegion(region)}>
-                {region.thumbnailPokemon ? (
-                  <div className="region-image-container">
-                    <img
-                      src={region.thumbnailPokemon.sprites.front_default}
-                      alt={region.thumbnailPokemon.name}
-                      className="region-image pokemon-image"
-                    />
-                    <p className="pokemon-name">{region.thumbnailPokemon.name}</p>
-                    <small className="pokemon-id">#{region.thumbnailPokemon.id}</small>
-                  </div>
-                ) : (
-                  <div className="region-image-placeholder">
-                    <p>{region.name} Region</p>
-                    <small>First Pokémon: #{region.starter1}</small>
-                  </div>
-                )}
-                <h3>{region.name}</h3>
-                <p>{region.description.substring(0, 100)}...</p>
-                <button className="explore-button">Explore Region</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    // Render detailed view of selected region
-    return (
-      <div className="region-detail">
-        <button className="back-to-regions" onClick={() => setSelectedRegion(null)}>
-          ← Back to All Regions
-        </button>
-
-        <h2>{selectedRegion.name} Region</h2>
-
-        <div className="region-main-content">
-          <div className="region-image-container">
-            {selectedRegion.thumbnailPokemon ? (
-              <div className="region-starter-showcase">
-                <img
-                  src={selectedRegion.thumbnailPokemon.sprites.front_default}
-                  alt={`${selectedRegion.name} starter Pokémon`}
-                  className="region-detail-image"
-                />
-                <p className="starter-caption">
-                  {selectedRegion.thumbnailPokemon.name} - First Pokémon of {selectedRegion.name}{' '}
-                  region
-                </p>
-              </div>
-            ) : (
-              <div className="region-detail-placeholder">
-                <p>Loading {selectedRegion.name} starter Pokémon...</p>
-              </div>
-            )}
-          </div>
-
-          <div className="region-info">
-            <div className="region-description">
-              <h3>About {selectedRegion.name}</h3>
-              <p>{selectedRegion.description}</p>
-              <p>
-                <strong>Pokédex:</strong> #{selectedRegion.pokedexRange.start} - #
-                {selectedRegion.pokedexRange.end}
-              </p>
-            </div>
-
-            {/* Starter Pokémon Section */}
-            <div className="starter-pokemon-section">
-              <h3>Starter Pokémon</h3>
-              <div className="starter-pokemon-grid">
-                {selectedRegion.starter1Pokemon && (
-                  <div className="starter-pokemon">
-                    <img
-                      src={selectedRegion.starter1Pokemon.sprites.front_default}
-                      alt={selectedRegion.starter1Pokemon.name}
-                    />
-                    <p>{selectedRegion.starter1Pokemon.name}</p>
-                    <div className="starter-types">
-                      {selectedRegion.starter1Pokemon.types.map((type) => (
-                        <span
-                          key={type.type.name}
-                          className="type-badge-small"
-                          style={{ backgroundColor: typeColors[type.type.name] }}
-                        >
-                          {type.type.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      className="view-pokemon-details"
-                      onClick={() =>
-                        selectedRegion.starter1Pokemon &&
-                        viewPokemonDetails(selectedRegion.starter1Pokemon)
-                      }
-                    >
-                      View Details
-                    </button>
-                  </div>
-                )}
-
-                {selectedRegion.starter2Pokemon && (
-                  <div className="starter-pokemon">
-                    <img
-                      src={selectedRegion.starter2Pokemon.sprites.front_default}
-                      alt={selectedRegion.starter2Pokemon.name}
-                    />
-                    <p>{selectedRegion.starter2Pokemon.name}</p>
-                    <div className="starter-types">
-                      {selectedRegion.starter2Pokemon.types.map((type) => (
-                        <span
-                          key={type.type.name}
-                          className="type-badge-small"
-                          style={{ backgroundColor: typeColors[type.type.name] }}
-                        >
-                          {type.type.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      className="view-pokemon-details"
-                      onClick={() =>
-                        selectedRegion.starter2Pokemon &&
-                        viewPokemonDetails(selectedRegion.starter2Pokemon)
-                      }
-                    >
-                      View Details
-                    </button>
-                  </div>
-                )}
-
-                {selectedRegion.starter3Pokemon && (
-                  <div className="starter-pokemon">
-                    <img
-                      src={selectedRegion.starter3Pokemon.sprites.front_default}
-                      alt={selectedRegion.starter3Pokemon.name}
-                    />
-                    <p>{selectedRegion.starter3Pokemon.name}</p>
-                    <div className="starter-types">
-                      {selectedRegion.starter3Pokemon.types.map((type) => (
-                        <span
-                          key={type.type.name}
-                          className="type-badge-small"
-                          style={{ backgroundColor: typeColors[type.type.name] }}
-                        >
-                          {type.type.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      className="view-pokemon-details"
-                      onClick={() =>
-                        selectedRegion.starter3Pokemon &&
-                        viewPokemonDetails(selectedRegion.starter3Pokemon)
-                      }
-                    >
-                      View Details
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gym Leaders Section */}
-        <div className="gym-leaders-section">
-          <h3>Gym Leaders</h3>
-          <div className="gym-leaders-grid">
-            {selectedRegion.gymLeaders.map((leader) => (
-              <div key={leader.name} className="gym-leader-card">
-                <h4>{leader.name}</h4>
-                <p>
-                  <span
-                    className="type-badge-small"
-                    style={{ backgroundColor: typeColors[leader.specialtyType] }}
-                  >
-                    {leader.specialtyType}
-                  </span>
-                </p>
-                <p>
-                  <strong>Badge:</strong> {leader.badge}
-                </p>
-                <div className="leader-pokemon">
-                  <strong>Pokémon:</strong>
-                  <p>{leader.pokemon.join(', ')}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Notable Locations Section */}
-        <div className="locations-section">
-          <h3>Notable Locations</h3>
-          <div className="locations-grid">
-            {selectedRegion.locations.map((location) => (
-              <div key={location.name} className="location-card">
-                <h4>{location.name}</h4>
-                <p>{location.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Function to fetch starter Pokémon data - this is now in the RegionExplorer component
 
   // Update the renderTabContent function to include the regions tab
   const renderTabContent = () => {
@@ -2677,7 +2415,14 @@ function App() {
         return renderBattleSimulator();
 
       case TABS.REGIONS:
-        return renderRegionExplorer();
+        return (
+          <RegionExplorer
+            regions={regions}
+            loading={loading}
+            onViewPokemonDetails={viewPokemonDetails}
+            API_URL={API_URL}
+          />
+        );
 
       default:
         return null;
