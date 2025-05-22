@@ -36,6 +36,7 @@ const TABS = {
   TEAM: 'team',
   FAVORITES: 'favorites',
   BATTLE: 'battle',
+  REGIONS: 'regions',
 } as const;
 
 // Type for tabs
@@ -348,6 +349,41 @@ interface SearchFilters {
   maxSpeed: number;
 }
 
+// Interface for region data
+interface GymLeader {
+  name: string;
+  specialtyType: string;
+  badge: string;
+  image?: string;
+  pokemon: string[];
+}
+
+interface RegionLocation {
+  name: string;
+  description: string;
+  image?: string;
+}
+
+interface Region {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  mapImage?: string;
+  pokedexRange: {
+    start: number;
+    end: number;
+  };
+  gymLeaders: GymLeader[];
+  locations: RegionLocation[];
+  starter1?: number;
+  starter2?: number;
+  starter3?: number;
+  starter1Pokemon?: Pokemon;
+  starter2Pokemon?: Pokemon;
+  starter3Pokemon?: Pokemon;
+}
+
 function App() {
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -403,6 +439,269 @@ function App() {
   });
   const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [isLoadingFiltered, setIsLoadingFiltered] = useState(false);
+
+  // Add state for regions
+  const [regions, setRegions] = useState<Region[]>([
+    {
+      id: 1,
+      name: 'Kanto',
+      description:
+        'The first Pokémon region, home to the original 151 Pokémon. A traditional Japanese-inspired region with diverse landscapes from mountains to seas.',
+      image:
+        'https://archives.bulbagarden.net/media/upload/thumb/2/25/LGPE_Kanto_Map.png/800px-LGPE_Kanto_Map.png',
+      pokedexRange: { start: 1, end: 151 },
+      gymLeaders: [
+        {
+          name: 'Brock',
+          specialtyType: 'rock',
+          badge: 'Boulder Badge',
+          pokemon: ['Geodude', 'Onix'],
+        },
+        {
+          name: 'Misty',
+          specialtyType: 'water',
+          badge: 'Cascade Badge',
+          pokemon: ['Staryu', 'Starmie'],
+        },
+        {
+          name: 'Lt. Surge',
+          specialtyType: 'electric',
+          badge: 'Thunder Badge',
+          pokemon: ['Voltorb', 'Pikachu', 'Raichu'],
+        },
+        {
+          name: 'Erika',
+          specialtyType: 'grass',
+          badge: 'Rainbow Badge',
+          pokemon: ['Victreebel', 'Tangela', 'Vileplume'],
+        },
+        {
+          name: 'Koga',
+          specialtyType: 'poison',
+          badge: 'Soul Badge',
+          pokemon: ['Koffing', 'Muk', 'Weezing'],
+        },
+        {
+          name: 'Sabrina',
+          specialtyType: 'psychic',
+          badge: 'Marsh Badge',
+          pokemon: ['Kadabra', 'Mr. Mime', 'Alakazam'],
+        },
+        {
+          name: 'Blaine',
+          specialtyType: 'fire',
+          badge: 'Volcano Badge',
+          pokemon: ['Growlithe', 'Ponyta', 'Rapidash', 'Arcanine'],
+        },
+        {
+          name: 'Giovanni',
+          specialtyType: 'ground',
+          badge: 'Earth Badge',
+          pokemon: ['Rhyhorn', 'Dugtrio', 'Nidoqueen', 'Nidoking', 'Rhydon'],
+        },
+      ],
+      locations: [
+        {
+          name: 'Pallet Town',
+          description: 'A small, quiet town where the player character begins their journey.',
+        },
+        {
+          name: 'Viridian City',
+          description: 'The first major city the player visits, home to the eighth gym.',
+        },
+        {
+          name: 'Mt. Moon',
+          description:
+            'A mountain connecting Route 3 and Route 4, known for Moon Stone and Fossil Pokémon.',
+        },
+        {
+          name: 'Cerulean City',
+          description: "The water-themed city, home to Misty's Gym.",
+        },
+        {
+          name: 'Lavender Town',
+          description: 'A small town with the haunting Pokémon Tower, home to ghost Pokémon.',
+        },
+      ],
+      starter1: 1, // Bulbasaur
+      starter2: 4, // Charmander
+      starter3: 7, // Squirtle
+    },
+    {
+      id: 2,
+      name: 'Johto',
+      description:
+        'A region west of Kanto, featuring new Pokémon and a deep connection to legends and traditions.',
+      image:
+        'https://archives.bulbagarden.net/media/upload/thumb/6/64/JohtoMap.png/800px-JohtoMap.png',
+      pokedexRange: { start: 152, end: 251 },
+      gymLeaders: [
+        {
+          name: 'Falkner',
+          specialtyType: 'flying',
+          badge: 'Zephyr Badge',
+          pokemon: ['Pidgey', 'Pidgeotto'],
+        },
+        {
+          name: 'Bugsy',
+          specialtyType: 'bug',
+          badge: 'Hive Badge',
+          pokemon: ['Metapod', 'Kakuna', 'Scyther'],
+        },
+        {
+          name: 'Whitney',
+          specialtyType: 'normal',
+          badge: 'Plain Badge',
+          pokemon: ['Clefairy', 'Miltank'],
+        },
+        {
+          name: 'Morty',
+          specialtyType: 'ghost',
+          badge: 'Fog Badge',
+          pokemon: ['Gastly', 'Haunter', 'Gengar'],
+        },
+        {
+          name: 'Chuck',
+          specialtyType: 'fighting',
+          badge: 'Storm Badge',
+          pokemon: ['Primeape', 'Poliwrath'],
+        },
+        {
+          name: 'Jasmine',
+          specialtyType: 'steel',
+          badge: 'Mineral Badge',
+          pokemon: ['Magnemite', 'Steelix'],
+        },
+        {
+          name: 'Pryce',
+          specialtyType: 'ice',
+          badge: 'Glacier Badge',
+          pokemon: ['Seel', 'Dewgong', 'Piloswine'],
+        },
+        {
+          name: 'Clair',
+          specialtyType: 'dragon',
+          badge: 'Rising Badge',
+          pokemon: ['Dragonair', 'Kingdra'],
+        },
+      ],
+      locations: [
+        {
+          name: 'New Bark Town',
+          description:
+            'A small, peaceful town where the player character begins their journey in Johto.',
+        },
+        {
+          name: 'Ecruteak City',
+          description: 'A city of tradition and history, home to the Burned Tower and Tin Tower.',
+        },
+        {
+          name: 'Goldenrod City',
+          description:
+            'The largest city in Johto, featuring a department store, Game Corner, and radio tower.',
+        },
+        {
+          name: 'Ruins of Alph',
+          description: 'An archaeological site with mysterious puzzles and Unown Pokémon.',
+        },
+        {
+          name: 'Mt. Silver',
+          description:
+            'A mountainous area on the border of Johto and Kanto, home to powerful wild Pokémon.',
+        },
+      ],
+      starter1: 152, // Chikorita
+      starter2: 155, // Cyndaquil
+      starter3: 158, // Totodile
+    },
+    {
+      id: 3,
+      name: 'Hoenn',
+      description:
+        'A region with diverse natural environments, from dense rainforests to volcanic areas and beaches.',
+      image:
+        'https://archives.bulbagarden.net/media/upload/thumb/8/85/Hoenn_ORAS.png/800px-Hoenn_ORAS.png',
+      pokedexRange: { start: 252, end: 386 },
+      gymLeaders: [
+        {
+          name: 'Roxanne',
+          specialtyType: 'rock',
+          badge: 'Stone Badge',
+          pokemon: ['Geodude', 'Nosepass'],
+        },
+        {
+          name: 'Brawly',
+          specialtyType: 'fighting',
+          badge: 'Knuckle Badge',
+          pokemon: ['Machop', 'Makuhita'],
+        },
+        {
+          name: 'Wattson',
+          specialtyType: 'electric',
+          badge: 'Dynamo Badge',
+          pokemon: ['Magnemite', 'Voltorb', 'Magneton'],
+        },
+        {
+          name: 'Flannery',
+          specialtyType: 'fire',
+          badge: 'Heat Badge',
+          pokemon: ['Slugma', 'Numel', 'Torkoal'],
+        },
+        {
+          name: 'Norman',
+          specialtyType: 'normal',
+          badge: 'Balance Badge',
+          pokemon: ['Spinda', 'Vigoroth', 'Slaking'],
+        },
+        {
+          name: 'Winona',
+          specialtyType: 'flying',
+          badge: 'Feather Badge',
+          pokemon: ['Swablu', 'Tropius', 'Altaria'],
+        },
+        {
+          name: 'Tate & Liza',
+          specialtyType: 'psychic',
+          badge: 'Mind Badge',
+          pokemon: ['Claydol', 'Xatu', 'Lunatone', 'Solrock'],
+        },
+        {
+          name: 'Wallace',
+          specialtyType: 'water',
+          badge: 'Rain Badge',
+          pokemon: ['Luvdisc', 'Whiscash', 'Sealeo', 'Milotic'],
+        },
+      ],
+      locations: [
+        {
+          name: 'Littleroot Town',
+          description:
+            "The player's hometown in Hoenn, a small rural community surrounded by nature.",
+        },
+        {
+          name: 'Rustboro City',
+          description: 'A city of technological advancement, home to the Devon Corporation.',
+        },
+        {
+          name: 'Slateport City',
+          description: 'A major port city with a market, shipyard, and beach.',
+        },
+        {
+          name: 'Sootopolis City',
+          description:
+            'A city built in the crater of an extinct volcano with water-filled caldera.',
+        },
+        {
+          name: 'Sky Pillar',
+          description: 'An ancient tower where Rayquaza can be awakened.',
+        },
+      ],
+      starter1: 252, // Treecko
+      starter2: 255, // Torchic
+      starter3: 258, // Mudkip
+    },
+  ]);
+  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
   // Fetch suggestions when search term changes
   useEffect(() => {
@@ -1147,12 +1446,13 @@ function App() {
     return defenseStat ? defenseStat.base_stat : 50;
   };
 
-  // Helper function to get speed stat
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // Helper function to get speed stat - removed for now as it's unused
+  /* 
   const getSpeedStat = (pokemon: Pokemon): number => {
     const speedStat = pokemon.stats.find((stat) => stat.stat.name === 'speed');
     return speedStat ? speedStat.base_stat : 50;
   };
+  */
 
   // Calculate type effectiveness for battle
   const calculateTypeEffectiveness = (attackerTypes: string[], defenderTypes: string[]): number => {
@@ -1785,7 +2085,234 @@ function App() {
     );
   };
 
-  // Update the renderTabContent function to include the battle tab and advanced search
+  // Function to fetch starter Pokémon data
+  const fetchRegionStarters = async (region: Region) => {
+    try {
+      setLoading(true);
+
+      // Create a copy of the region to update
+      const updatedRegion = { ...region };
+
+      // Fetch starter Pokémon data if they have starter IDs
+      if (region.starter1) {
+        const starter1Response = await axios.get(`${API_URL}/api/pokemon/${region.starter1}`);
+        updatedRegion.starter1Pokemon = starter1Response.data;
+      }
+
+      if (region.starter2) {
+        const starter2Response = await axios.get(`${API_URL}/api/pokemon/${region.starter2}`);
+        updatedRegion.starter2Pokemon = starter2Response.data;
+      }
+
+      if (region.starter3) {
+        const starter3Response = await axios.get(`${API_URL}/api/pokemon/${region.starter3}`);
+        updatedRegion.starter3Pokemon = starter3Response.data;
+      }
+
+      // Update the selected region with the starter Pokémon data
+      setSelectedRegion(updatedRegion);
+    } catch (err) {
+      console.error('Error fetching starter Pokémon:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to select a region
+  const selectRegion = (region: Region) => {
+    setSelectedRegion(region);
+    fetchRegionStarters(region);
+  };
+
+  // Function to render the region explorer
+  const renderRegionExplorer = () => {
+    if (loading) {
+      return <div className="loading">Loading region data...</div>;
+    }
+
+    if (!selectedRegion) {
+      return (
+        <div className="regions-list">
+          <h2>Pokémon Regions</h2>
+          <p className="regions-intro">
+            Explore the different regions of the Pokémon world, each with their own unique Pokémon,
+            Gym Leaders, and landmarks.
+          </p>
+          <div className="regions-grid">
+            {regions.map((region) => (
+              <div key={region.id} className="region-card" onClick={() => selectRegion(region)}>
+                <img src={region.image} alt={region.name} className="region-image" />
+                <h3>{region.name}</h3>
+                <p>{region.description.substring(0, 100)}...</p>
+                <button className="explore-button">Explore Region</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Render detailed view of selected region
+    return (
+      <div className="region-detail">
+        <button className="back-to-regions" onClick={() => setSelectedRegion(null)}>
+          ← Back to All Regions
+        </button>
+
+        <h2>{selectedRegion.name} Region</h2>
+
+        <div className="region-main-content">
+          <div className="region-image-container">
+            <img
+              src={selectedRegion.image}
+              alt={selectedRegion.name}
+              className="region-detail-image"
+            />
+          </div>
+
+          <div className="region-info">
+            <div className="region-description">
+              <h3>About {selectedRegion.name}</h3>
+              <p>{selectedRegion.description}</p>
+              <p>
+                <strong>Pokédex:</strong> #{selectedRegion.pokedexRange.start} - #
+                {selectedRegion.pokedexRange.end}
+              </p>
+            </div>
+
+            {/* Starter Pokémon Section */}
+            <div className="starter-pokemon-section">
+              <h3>Starter Pokémon</h3>
+              <div className="starter-pokemon-grid">
+                {selectedRegion.starter1Pokemon && (
+                  <div className="starter-pokemon">
+                    <img
+                      src={selectedRegion.starter1Pokemon.sprites.front_default}
+                      alt={selectedRegion.starter1Pokemon.name}
+                    />
+                    <p>{selectedRegion.starter1Pokemon.name}</p>
+                    <div className="starter-types">
+                      {selectedRegion.starter1Pokemon.types.map((type) => (
+                        <span
+                          key={type.type.name}
+                          className="type-badge-small"
+                          style={{ backgroundColor: typeColors[type.type.name] }}
+                        >
+                          {type.type.name}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      className="view-pokemon-details"
+                      onClick={() => viewPokemonDetails(selectedRegion.starter1Pokemon)}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                )}
+
+                {selectedRegion.starter2Pokemon && (
+                  <div className="starter-pokemon">
+                    <img
+                      src={selectedRegion.starter2Pokemon.sprites.front_default}
+                      alt={selectedRegion.starter2Pokemon.name}
+                    />
+                    <p>{selectedRegion.starter2Pokemon.name}</p>
+                    <div className="starter-types">
+                      {selectedRegion.starter2Pokemon.types.map((type) => (
+                        <span
+                          key={type.type.name}
+                          className="type-badge-small"
+                          style={{ backgroundColor: typeColors[type.type.name] }}
+                        >
+                          {type.type.name}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      className="view-pokemon-details"
+                      onClick={() => viewPokemonDetails(selectedRegion.starter2Pokemon)}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                )}
+
+                {selectedRegion.starter3Pokemon && (
+                  <div className="starter-pokemon">
+                    <img
+                      src={selectedRegion.starter3Pokemon.sprites.front_default}
+                      alt={selectedRegion.starter3Pokemon.name}
+                    />
+                    <p>{selectedRegion.starter3Pokemon.name}</p>
+                    <div className="starter-types">
+                      {selectedRegion.starter3Pokemon.types.map((type) => (
+                        <span
+                          key={type.type.name}
+                          className="type-badge-small"
+                          style={{ backgroundColor: typeColors[type.type.name] }}
+                        >
+                          {type.type.name}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      className="view-pokemon-details"
+                      onClick={() => viewPokemonDetails(selectedRegion.starter3Pokemon)}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gym Leaders Section */}
+        <div className="gym-leaders-section">
+          <h3>Gym Leaders</h3>
+          <div className="gym-leaders-grid">
+            {selectedRegion.gymLeaders.map((leader) => (
+              <div key={leader.name} className="gym-leader-card">
+                <h4>{leader.name}</h4>
+                <p>
+                  <span
+                    className="type-badge-small"
+                    style={{ backgroundColor: typeColors[leader.specialtyType] }}
+                  >
+                    {leader.specialtyType}
+                  </span>
+                </p>
+                <p>
+                  <strong>Badge:</strong> {leader.badge}
+                </p>
+                <div className="leader-pokemon">
+                  <strong>Pokémon:</strong>
+                  <p>{leader.pokemon.join(', ')}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Notable Locations Section */}
+        <div className="locations-section">
+          <h3>Notable Locations</h3>
+          <div className="locations-grid">
+            {selectedRegion.locations.map((location) => (
+              <div key={location.name} className="location-card">
+                <h4>{location.name}</h4>
+                <p>{location.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Update the renderTabContent function to include the regions tab
   const renderTabContent = () => {
     switch (activeTab) {
       case TABS.POKEDEX:
@@ -2026,6 +2553,9 @@ function App() {
       case TABS.BATTLE:
         return renderBattleSimulator();
 
+      case TABS.REGIONS:
+        return renderRegionExplorer();
+
       default:
         return null;
     }
@@ -2059,6 +2589,12 @@ function App() {
           onClick={() => setActiveTab(TABS.BATTLE)}
         >
           Battle
+        </button>
+        <button
+          className={`tab ${activeTab === TABS.REGIONS ? 'active' : ''}`}
+          onClick={() => setActiveTab(TABS.REGIONS)}
+        >
+          Regions
         </button>
       </div>
 
