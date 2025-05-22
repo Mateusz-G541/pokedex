@@ -56,3 +56,17 @@ export interface EvolutionData {
   id: number;
   image: string;
 }
+
+export interface TypeAnalysis {
+  strongAgainst: string[];
+  weakAgainst: string[];
+  immuneTo: string[];
+  resistantTo: string[];
+  vulnerableTo: string[];
+}
+
+export interface PokemonRecommendation {
+  type: string;
+  reason: string;
+  examples: string[];
+}

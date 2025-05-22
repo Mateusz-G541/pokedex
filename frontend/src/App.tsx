@@ -3,6 +3,7 @@ import axios from 'axios';
 import './App.css';
 import { RegionExplorer } from './components/Regions';
 import { PokedexExplorer } from './components/Pokedex';
+import { TeamView } from './components/Team';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
@@ -2244,56 +2245,18 @@ function App() {
 
       case TABS.TEAM:
         return (
-          <div className="team-section">
-            <h2>My Team ({team.length}/6)</h2>
-            {teamMessage && <div className="team-message">{teamMessage}</div>}
-
-            <div className="team-container">
-              {team.length === 0 ? (
-                <p className="empty-team">Your team is empty. Add Pokémon to your team!</p>
-              ) : (
-                <>
-                  <div className="team-grid">
-                    {team.map((teamPokemon) => (
-                      <div key={teamPokemon.id} className="team-pokemon">
-                        <img
-                          src={teamPokemon.sprites.front_default}
-                          alt={teamPokemon.name}
-                          onClick={() => viewPokemonDetails(teamPokemon)}
-                          className="clickable-pokemon"
-                        />
-                        <p>{teamPokemon.name}</p>
-                        <div className="team-pokemon-types">
-                          {teamPokemon.types.map((type) => (
-                            <span
-                              key={type.type.name}
-                              className="team-type-badge"
-                              style={{ backgroundColor: typeColors[type.type.name] }}
-                            >
-                              {type.type.name}
-                            </span>
-                          ))}
-                        </div>
-                        <button
-                          className="remove-pokemon"
-                          onClick={() => removeFromTeam(teamPokemon.id)}
-                        >
-                          Release
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {renderTeamAnalysis()}
-                  {renderTeamRecommendations()}
-
-                  <button className="clear-team" onClick={clearTeam}>
-                    Release All
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <TeamView
+            team={team}
+            teamMessage={teamMessage}
+            teamAnalysis={teamAnalysis}
+            recommendations={recommendations}
+            typeColors={typeColors}
+            onViewPokemonDetails={viewPokemonDetails}
+            onRemoveFromTeam={removeFromTeam}
+            onClearTeam={clearTeam}
+            renderTeamAnalysis={renderTeamAnalysis}
+            renderTeamRecommendations={renderTeamRecommendations}
+          />
         );
 
       case TABS.FAVORITES:
