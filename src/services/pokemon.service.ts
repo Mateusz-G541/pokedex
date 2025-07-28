@@ -11,7 +11,7 @@ export class PokemonService {
 
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {
     const regionData = this.getRegionData(region);
-    
+
     // Get type data from custom API
     const typeResponse = await axios.get(`${this.customApiUrl}/type/${type}`);
     const pokemonList = typeResponse.data.pokemon
@@ -41,7 +41,9 @@ export class PokemonService {
     const pokemon = await this.getPokemonByName(name);
     const speciesResponse = await axios.get(`${this.customApiUrl}/pokemon-species/${pokemon.id}`);
     const evolutionChainId = speciesResponse.data.evolution_chain.url.split('/').slice(-2, -1)[0];
-    const evolutionChainResponse = await axios.get(`${this.customApiUrl}/evolution-chain/${evolutionChainId}`);
+    const evolutionChainResponse = await axios.get(
+      `${this.customApiUrl}/evolution-chain/${evolutionChainId}`,
+    );
     return evolutionChainResponse.data.chain;
   }
 
