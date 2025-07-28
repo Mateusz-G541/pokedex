@@ -6,9 +6,13 @@ export class PokemonService {
 
   constructor() {
     // Use custom Pokemon API service (will be deployed to Mikr.us)
-    // Temporarily hardcoded for testing
-    this.customApiUrl = 'http://srv36.mikr.us:20275/api/v2';
-    // this.customApiUrl = process.env.CUSTOM_POKEMON_API_URL || 'http://localhost:3001/api/v2';
+    // Fallback to hardcoded URL if environment variable is not set
+    this.customApiUrl = process.env.CUSTOM_POKEMON_API_URL || 'http://srv36.mikr.us:20275/api/v2';
+  }
+
+  // Helper method to validate Pokemon ID is within Generation 1 (1-151)
+  private isValidPokemonId(id: number): boolean {
+    return id >= 1 && id <= 151;
   }
 
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {
@@ -36,7 +40,16 @@ export class PokemonService {
 
   async getPokemonByName(name: string): Promise<Pokemon> {
     const response = await axios.get(`${this.customApiUrl}/pokemon/${name.toLowerCase()}`);
-    return response.data;
+    const pokemon = response.data;
+
+    // Validate that Pokemon ID is within Generation 1 (1-151)
+    if (!this.isValidPokemonId(pokemon.id)) {
+      throw new Error(
+        `Pokemon ${name} (ID: ${pokemon.id}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
+      );
+    }
+
+    return pokemon;
   }
 
   async getPokemonEvolution(name: string): Promise<EvolutionChain> {
@@ -126,13 +139,8 @@ export class PokemonService {
   }
 
   async getRandomLegendaryPokemon(): Promise<Pokemon> {
-    // List of legendary Pokemon IDs
-    const legendaryIds = [
-      144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 377, 378, 379, 380, 381, 382, 383, 384,
-      385, 386, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 643, 644,
-      646, 716, 717, 718, 719, 720, 721, 785, 786, 787, 788, 789, 790, 791, 792, 793, 794, 795, 796,
-      797, 798, 799, 800, 801, 802, 888, 889, 890, 891, 892, 893, 894, 895, 896, 897, 898,
-    ];
+    // List of Generation 1 legendary Pokemon IDs only (1-151)
+    const legendaryIds = [144, 145, 146, 150, 151]; // Articuno, Zapdos, Moltres, Mewtwo, Mew
 
     const randomIndex = Math.floor(Math.random() * legendaryIds.length);
     const randomId = legendaryIds[randomIndex];
@@ -143,7 +151,8 @@ export class PokemonService {
 
   async getPokemonSuggestions(query: string): Promise<string[]> {
     console.log('Fetching suggestions for query:', query);
-    const response = await axios.get(`${this.customApiUrl}/pokemon?limit=898`);
+    // Limit to Generation 1 Pokemon only (1-151)
+    const response = await axios.get(`${this.customApiUrl}/pokemon?limit=151`);
     const pokemonList = response.data.results;
 
     const suggestions = pokemonList
