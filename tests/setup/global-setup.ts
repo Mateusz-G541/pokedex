@@ -36,6 +36,7 @@ async function globalSetup() {
       PORT: port.toString(),
       NODE_ENV: 'test',
       HOST: '0.0.0.0', // Bind to all network interfaces
+      CUSTOM_POKEMON_API_URL: 'https://pokeapi.co/api/v2', // Use original API for tests
     },
   });
 
