@@ -2,38 +2,46 @@ import axios from 'axios';
 import { Pokemon, EvolutionChain, PokemonComparison, Region } from '../types/pokemon';
 
 export class PokemonService {
-  private readonly baseUrl: string;
+  private readonly customApiUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.POKE_API_BASE_URL || 'https://pokeapi.co/api/v2';
+    // Use custom Pokemon API service (will be deployed to Mikr.us)
+    this.customApiUrl = process.env.CUSTOM_POKEMON_API_URL || 'http://localhost:3001/api/v2';
   }
 
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {
     const regionData = this.getRegionData(region);
-    const response = await axios.get(`${this.baseUrl}/type/${type}`);
-    const pokemonList = response.data.pokemon
+    
+    // Get type data from custom API
+    const typeResponse = await axios.get(`${this.customApiUrl}/type/${type}`);
+    const pokemonList = typeResponse.data.pokemon
       .map((p: { pokemon: { url: string } }) => p.pokemon.url)
       .filter((url: string) => {
         const id = parseInt(url.split('/').slice(-2, -1)[0]);
         return id >= regionData.pokemonRange.start && id <= regionData.pokemonRange.end;
       });
 
+    // Get Pokemon details from custom API
     const pokemonDetails = await Promise.all(
-      pokemonList.map((url: string) => axios.get(url).then((res) => res.data)),
+      pokemonList.map((url: string) => {
+        const id = url.split('/').slice(-2, -1)[0];
+        return axios.get(`${this.customApiUrl}/pokemon/${id}`).then((res) => res.data);
+      }),
     );
 
     return pokemonDetails;
   }
 
   async getPokemonByName(name: string): Promise<Pokemon> {
-    const response = await axios.get(`${this.baseUrl}/pokemon/${name.toLowerCase()}`);
+    const response = await axios.get(`${this.customApiUrl}/pokemon/${name.toLowerCase()}`);
     return response.data;
   }
 
   async getPokemonEvolution(name: string): Promise<EvolutionChain> {
     const pokemon = await this.getPokemonByName(name);
-    const speciesResponse = await axios.get(`${this.baseUrl}/pokemon-species/${pokemon.id}`);
-    const evolutionChainResponse = await axios.get(speciesResponse.data.evolution_chain.url);
+    const speciesResponse = await axios.get(`${this.customApiUrl}/pokemon-species/${pokemon.id}`);
+    const evolutionChainId = speciesResponse.data.evolution_chain.url.split('/').slice(-2, -1)[0];
+    const evolutionChainResponse = await axios.get(`${this.customApiUrl}/evolution-chain/${evolutionChainId}`);
     return evolutionChainResponse.data.chain;
   }
 

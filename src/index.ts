@@ -3,9 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
 import pokemonRoutes from './routes/pokemon.routes';
 
-// Load environment variables based on NODE_ENV
+// Load environnmp ment variables based on NODE_ENV
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
 dotenv.config({ path: envFile });
 
@@ -44,6 +45,9 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(express.json());
+
+// Serve static images
+app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // Health check endpoint
 app.get('/api/health', (req: express.Request, res: express.Response) => {
