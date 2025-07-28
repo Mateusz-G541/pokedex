@@ -66,7 +66,7 @@ export class PokemonService {
   }
 
   async getAllTypes(): Promise<string[]> {
-    const response = await axios.get(`${this.baseUrl}/type`);
+    const response = await axios.get(`${this.customApiUrl}/type`);
     return response.data.results.map((type: { name: string }) => type.name);
   }
 
@@ -135,13 +135,13 @@ export class PokemonService {
     const randomIndex = Math.floor(Math.random() * legendaryIds.length);
     const randomId = legendaryIds[randomIndex];
 
-    const response = await axios.get(`${this.baseUrl}/pokemon/${randomId}`);
+    const response = await axios.get(`${this.customApiUrl}/pokemon/${randomId}`);
     return response.data;
   }
 
   async getPokemonSuggestions(query: string): Promise<string[]> {
     console.log('Fetching suggestions for query:', query);
-    const response = await axios.get(`${this.baseUrl}/pokemon?limit=898`);
+    const response = await axios.get(`${this.customApiUrl}/pokemon?limit=898`);
     const pokemonList = response.data.results;
 
     const suggestions = pokemonList

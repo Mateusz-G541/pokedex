@@ -256,38 +256,47 @@ export class LocalPokemonService {
     const regions: { [key: string]: Region } = {
       kanto: {
         name: 'Kanto',
+        generation: 1,
         pokemonRange: { start: 1, end: 151 },
       },
       johto: {
         name: 'Johto',
+        generation: 2,
         pokemonRange: { start: 152, end: 251 },
       },
       hoenn: {
         name: 'Hoenn',
+        generation: 3,
         pokemonRange: { start: 252, end: 386 },
       },
       sinnoh: {
         name: 'Sinnoh',
+        generation: 4,
         pokemonRange: { start: 387, end: 493 },
       },
       unova: {
         name: 'Unova',
+        generation: 5,
         pokemonRange: { start: 494, end: 649 },
       },
       kalos: {
         name: 'Kalos',
+        generation: 6,
         pokemonRange: { start: 650, end: 721 },
       },
       alola: {
         name: 'Alola',
+        generation: 7,
         pokemonRange: { start: 722, end: 809 },
       },
       galar: {
         name: 'Galar',
+        generation: 8,
         pokemonRange: { start: 810, end: 898 },
       },
       paldea: {
         name: 'Paldea',
+        generation: 9,
         pokemonRange: { start: 899, end: 1010 },
       },
     };
