@@ -6,7 +6,9 @@ export class PokemonService {
 
   constructor() {
     // Use custom Pokemon API service (will be deployed to Mikr.us)
-    this.customApiUrl = process.env.CUSTOM_POKEMON_API_URL || 'http://localhost:3001/api/v2';
+    // Temporarily hardcoded for testing
+    this.customApiUrl = 'http://srv36.mikr.us:20275/api/v2';
+    // this.customApiUrl = process.env.CUSTOM_POKEMON_API_URL || 'http://localhost:3001/api/v2';
   }
 
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {

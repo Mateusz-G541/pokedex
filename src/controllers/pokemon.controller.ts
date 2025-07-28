@@ -32,7 +32,25 @@ export class PokemonController {
       const pokemon = await this.pokemonService.getPokemonByName(name);
       res.json(pokemon);
     } catch (error) {
-      res.status(404).json({ error: 'Pokemon not found' });
+      console.error('Error fetching Pokemon:', error);
+      res.status(404).json({
+        error: 'Pokemon not found',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // Debug endpoint to check API configuration
+  async getDebugInfo(req: Request, res: Response): Promise<void> {
+    try {
+      const debugInfo = {
+        customApiUrl: process.env.CUSTOM_POKEMON_API_URL || 'Not set',
+        nodeEnv: process.env.NODE_ENV || 'Not set',
+        timestamp: new Date().toISOString(),
+      };
+      res.json(debugInfo);
+    } catch (error) {
+      res.status(500).json({ error: 'Debug info failed' });
     }
   }
 

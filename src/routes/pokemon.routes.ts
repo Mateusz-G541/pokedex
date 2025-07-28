@@ -4,6 +4,9 @@ import { PokemonController } from '../controllers/pokemon.controller';
 const router = Router();
 const pokemonController = new PokemonController();
 
+// Debug endpoint to check API configuration
+router.get('/debug', pokemonController.getDebugInfo.bind(pokemonController));
+
 // Get all Pokemon types
 router.get('/pokemon/types', pokemonController.getAllTypes.bind(pokemonController));
 
