@@ -15,6 +15,11 @@ export class PokemonService {
     return id >= 1 && id <= 151;
   }
 
+  // Get random Pokemon ID from Generation 1 (1-151)
+  getRandomPokemonId(): number {
+    return Math.floor(Math.random() * 151) + 1;
+  }
+
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {
     const regionData = this.getRegionData(region);
 
@@ -85,47 +90,12 @@ export class PokemonService {
     return response.data.results.map((type: { name: string }) => type.name);
   }
 
-  getRegions(): Region[] {
+  private getRegions(): Region[] {
     return [
       {
         name: 'kanto',
         generation: 1,
         pokemonRange: { start: 1, end: 151 },
-      },
-      {
-        name: 'johto',
-        generation: 2,
-        pokemonRange: { start: 152, end: 251 },
-      },
-      {
-        name: 'hoenn',
-        generation: 3,
-        pokemonRange: { start: 252, end: 386 },
-      },
-      {
-        name: 'sinnoh',
-        generation: 4,
-        pokemonRange: { start: 387, end: 493 },
-      },
-      {
-        name: 'unova',
-        generation: 5,
-        pokemonRange: { start: 494, end: 649 },
-      },
-      {
-        name: 'kalos',
-        generation: 6,
-        pokemonRange: { start: 650, end: 721 },
-      },
-      {
-        name: 'alola',
-        generation: 7,
-        pokemonRange: { start: 722, end: 809 },
-      },
-      {
-        name: 'galar',
-        generation: 8,
-        pokemonRange: { start: 810, end: 898 },
       },
     ];
   }
@@ -151,16 +121,62 @@ export class PokemonService {
 
   async getPokemonSuggestions(query: string): Promise<string[]> {
     console.log('Fetching suggestions for query:', query);
-    // Limit to Generation 1 Pokemon only (1-151)
-    const response = await axios.get(`${this.customApiUrl}/pokemon?limit=151`);
-    const pokemonList = response.data.results;
 
-    const suggestions = pokemonList
-      .map((p: { name: string }) => p.name)
-      .filter((name: string) => name.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 10); // Limit to 10 suggestions
+    try {
+      // Limit to Generation 1 Pokemon only (1-151)
+      const response = await axios.get(`${this.customApiUrl}/pokemon?limit=151`);
 
-    console.log('Found suggestions:', suggestions);
-    return suggestions;
+      if (!response.data || !response.data.results) {
+        console.warn('Invalid response format from Pokemon API for suggestions');
+        return this.getFallbackSuggestions(query);
+      }
+
+      const pokemonList = response.data.results;
+      const suggestions = pokemonList
+        .map((p: { name: string }) => p.name)
+        .filter((name: string) => name.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 10); // Limit to 10 suggestions
+
+      console.log('Found suggestions:', suggestions);
+      return suggestions;
+    } catch (error) {
+      console.error('Error fetching Pokemon suggestions:', error);
+      return this.getFallbackSuggestions(query);
+    }
+  }
+
+  // Fallback suggestions for Generation 1 Pokemon when API is unavailable
+  private getFallbackSuggestions(query: string): string[] {
+    const gen1Pokemon = [
+      'bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'charmeleon', 'charizard',
+      'squirtle', 'wartortle', 'blastoise', 'caterpie', 'metapod', 'butterfree',
+      'weedle', 'kakuna', 'beedrill', 'pidgey', 'pidgeotto', 'pidgeot',
+      'rattata', 'raticate', 'spearow', 'fearow', 'ekans', 'arbok',
+      'pikachu', 'raichu', 'sandshrew', 'sandslash', 'nidoran-f', 'nidorina',
+      'nidoqueen', 'nidoran-m', 'nidorino', 'nidoking', 'clefairy', 'clefable',
+      'vulpix', 'ninetales', 'jigglypuff', 'wigglytuff', 'zubat', 'golbat',
+      'oddish', 'gloom', 'vileplume', 'paras', 'parasect', 'venonat',
+      'venomoth', 'diglett', 'dugtrio', 'meowth', 'persian', 'psyduck',
+      'golduck', 'mankey', 'primeape', 'growlithe', 'arcanine', 'poliwag',
+      'poliwhirl', 'poliwrath', 'abra', 'kadabra', 'alakazam', 'machop',
+      'machoke', 'machamp', 'bellsprout', 'weepinbell', 'victreebel', 'tentacool',
+      'tentacruel', 'geodude', 'graveler', 'golem', 'ponyta', 'rapidash',
+      'slowpoke', 'slowbro', 'magnemite', 'magneton', 'farfetchd', 'doduo',
+      'dodrio', 'seel', 'dewgong', 'grimer', 'muk', 'shellder',
+      'cloyster', 'gastly', 'haunter', 'gengar', 'onix', 'drowzee',
+      'hypno', 'krabby', 'kingler', 'voltorb', 'electrode', 'exeggcute',
+      'exeggutor', 'cubone', 'marowak', 'hitmonlee', 'hitmonchan', 'lickitung',
+      'koffing', 'weezing', 'rhyhorn', 'rhydon', 'chansey', 'tangela',
+      'kangaskhan', 'horsea', 'seadra', 'goldeen', 'seaking', 'staryu',
+      'starmie', 'mr-mime', 'scyther', 'jynx', 'electabuzz', 'magmar',
+      'pinsir', 'tauros', 'magikarp', 'gyarados', 'lapras', 'ditto',
+      'eevee', 'vaporeon', 'jolteon', 'flareon', 'porygon', 'omanyte',
+      'omastar', 'kabuto', 'kabutops', 'aerodactyl', 'snorlax', 'articuno',
+      'zapdos', 'moltres', 'dratini', 'dragonair', 'dragonite', 'mewtwo', 'mew'
+    ];
+    
+    return gen1Pokemon
+      .filter((name) => name.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 10);
   }
 }
