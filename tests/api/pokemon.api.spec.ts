@@ -160,7 +160,9 @@ test.describe('Mikr.us Pokemon API Integration', () => {
     expect(data.sprites.front_default).toContain('srv36.mikr.us:20275');
   });
 
-  test('GET /pokemon?limit=151 from Mikr.us API returns Generation 1 Pokemon list', async ({ request }) => {
+  test('GET /pokemon?limit=151 from Mikr.us API returns Generation 1 Pokemon list', async ({
+    request,
+  }) => {
     const response = await request.get(`${MIKRUS_API_BASE}/pokemon?limit=151`);
     expect(response.ok()).toBeTruthy();
 
