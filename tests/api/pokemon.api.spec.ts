@@ -137,9 +137,29 @@ test.describe('Mikr.us Pokemon API Integration', () => {
   const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
-  test.beforeEach(async () => {
+  // Helper function to check server connectivity with timeout
+  async function checkServerConnectivity(request: any): Promise<boolean> {
+    try {
+      const response = await request.get(`${MIKRUS_API_BASE}/health`, {
+        timeout: 5000, // 5 second timeout
+      });
+      return response.ok();
+    } catch (error) {
+      console.log('Mikr.us server not accessible:', error.message);
+      return false;
+    }
+  }
+
+  test.beforeEach(async ({ request }) => {
     // Skip tests in CI environments where Mikr.us server isn't accessible
-    test.skip(isCI, 'Skipping Mikr.us integration tests in CI environment');
+    if (isCI) {
+      test.skip(true, 'Skipping Mikr.us integration tests in CI environment');
+      return;
+    }
+
+    // Check server connectivity before running tests
+    const isServerAccessible = await checkServerConnectivity(request);
+    test.skip(!isServerAccessible, 'Skipping Mikr.us integration tests - server not accessible');
   });
 
   test('GET /pokemon/:id from Mikr.us API returns Pokemon data', async ({ request }) => {
