@@ -5,10 +5,10 @@ export class TestHelpers {
   static async setupPage(page: Page): Promise<void> {
     // Set viewport for consistent testing
     await page.setViewportSize(TestData.ui.viewport);
-    
+
     // Set longer timeouts for CI environments
     page.setDefaultTimeout(TestData.ui.timeouts.long);
-    
+
     // Add console log monitoring
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
@@ -25,25 +25,24 @@ export class TestHelpers {
   static async verifyNoJavaScriptErrors(page: Page): Promise<void> {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    
+
     // Wait for potential errors to surface
     await page.waitForTimeout(3000);
-    
+
     // Filter out warnings and focus on critical errors
-    const criticalErrors = errors.filter(error => 
-      !error.includes('Warning') && 
-      !error.includes('DevTools')
+    const criticalErrors = errors.filter(
+      (error) => !error.includes('Warning') && !error.includes('DevTools'),
     );
-    
+
     expect(criticalErrors).toHaveLength(0);
   }
 
   static async takeTestScreenshot(page: Page, testName: string, step?: string): Promise<void> {
     const fileName = step ? `${testName}-${step}` : testName;
-    await page.screenshot({ 
+    await page.screenshot({
       path: `test-results/screenshots/${fileName}.png`,
       fullPage: true,
-      animations: 'disabled'
+      animations: 'disabled',
     });
   }
 
@@ -57,63 +56,63 @@ export class TestHelpers {
   }
 
   static async retryAction<T>(
-    action: () => Promise<T>, 
+    action: () => Promise<T>,
     maxRetries: number = 3,
-    delay: number = 1000
+    delay: number = 1000,
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await action();
       } catch (error) {
         lastError = error as Error;
         if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
-    
+
     throw lastError!;
   }
 }
 
 export class TestAssertions {
   static async verifyElementVisible(
-    element: any, 
+    element: any,
     elementName: string,
-    timeout?: number
+    timeout?: number,
   ): Promise<void> {
     await expect(element, `${elementName} should be visible`).toBeVisible({
-      timeout: timeout || TestHelpers.getTimeout('medium')
+      timeout: timeout || TestHelpers.getTimeout('medium'),
     });
   }
 
   static async verifyElementHidden(
-    element: any, 
+    element: any,
     elementName: string,
-    timeout?: number
+    timeout?: number,
   ): Promise<void> {
     await expect(element, `${elementName} should be hidden`).toBeHidden({
-      timeout: timeout || TestHelpers.getTimeout('short')
+      timeout: timeout || TestHelpers.getTimeout('short'),
     });
   }
 
   static async verifyTextContent(
-    element: any, 
+    element: any,
     expectedText: string | RegExp,
-    elementName: string
+    elementName: string,
   ): Promise<void> {
     await expect(element, `${elementName} should contain expected text`).toContainText(
-      expectedText, 
-      { ignoreCase: true }
+      expectedText,
+      { ignoreCase: true },
     );
   }
 
   static async verifyElementCount(
     elements: any,
     expectedCount: number,
-    elementName: string
+    elementName: string,
   ): Promise<void> {
     const actualCount = await elements.count();
     expect(actualCount, `${elementName} count should match expected`).toBe(expectedCount);
@@ -122,9 +121,12 @@ export class TestAssertions {
   static async verifyMinimumElementCount(
     elements: any,
     minCount: number,
-    elementName: string
+    elementName: string,
   ): Promise<void> {
     const actualCount = await elements.count();
-    expect(actualCount, `${elementName} count should be at least ${minCount}`).toBeGreaterThanOrEqual(minCount);
+    expect(
+      actualCount,
+      `${elementName} count should be at least ${minCount}`,
+    ).toBeGreaterThanOrEqual(minCount);
   }
 }

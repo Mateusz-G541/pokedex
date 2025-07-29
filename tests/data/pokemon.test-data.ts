@@ -22,6 +22,36 @@ export const TestData = {
       searchTerm: 'bulbasaur',
       expectedName: 'bulbasaur',
     },
+    blastoise: {
+      name: 'blastoise',
+      id: 9,
+      type: 'water',
+      searchTerm: 'blastoise',
+    },
+    venusaur: {
+      name: 'venusaur',
+      id: 3,
+      type: 'grass',
+      searchTerm: 'venusaur',
+    },
+    alakazam: {
+      name: 'alakazam',
+      id: 65,
+      type: 'psychic',
+      searchTerm: 'alakazam',
+    },
+    machamp: {
+      name: 'machamp',
+      id: 68,
+      type: 'fighting',
+      searchTerm: 'machamp',
+    },
+    gengar: {
+      name: 'gengar',
+      id: 94,
+      type: 'ghost',
+      searchTerm: 'gengar',
+    },
   },
   regions: {
     kanto: {
@@ -55,10 +85,27 @@ export const TestData = {
   },
   messages: {
     loading: 'Loading...',
-    error: 'Error',
+    error: 'Error loading Pokemon data',
     notFound: 'Pokemon not found',
+    networkError: 'Network error occurred',
+    teamFull: 'Your team is full! Remove a Pokémon to add a new one.',
+    alreadyInTeam: 'This Pokémon is already in your team!',
+    addedToTeam: 'added to your team!',
+    removedFromTeam: 'Pokémon removed from your team.',
+    teamCleared: 'All Pokémon released from your team.',
+  },
+  team: {
+    maxSize: 6,
+    testTeam: [
+      { name: 'pikachu', id: 25 },
+      { name: 'charizard', id: 6 },
+      { name: 'blastoise', id: 9 },
+      { name: 'venusaur', id: 3 },
+      { name: 'alakazam', id: 65 },
+      { name: 'machamp', id: 68 },
+    ],
   },
 } as const;
 
-export type PokemonData = typeof TestData.pokemon[keyof typeof TestData.pokemon];
-export type RegionData = typeof TestData.regions[keyof typeof TestData.regions];
+export type PokemonData = (typeof TestData.pokemon)[keyof typeof TestData.pokemon];
+export type RegionData = (typeof TestData.regions)[keyof typeof TestData.regions];

@@ -21,47 +21,43 @@ export class PokemonAppPage {
 
   constructor(page: Page) {
     this.page = page;
-    
+
     // Initialize locators with fallback strategies
-    this.searchInput = page.getByPlaceholder('Search for a Pokemon...').or(
-      page.locator('input[type="search"]')
-    );
-    this.searchButton = page.getByRole('button', { name: /search/i }).or(
-      page.locator('button[type="submit"]')
-    );
-    this.pokemonCard = page.locator('[data-testid="pokemon-card"]').or(
-      page.locator('.pokemon-card').first()
-    );
-    this.pokemonName = page.locator('[data-testid="pokemon-name"]').or(
-      page.locator('.pokemon-name').first()
-    );
-    this.pokemonImage = page.locator('[data-testid="pokemon-image"]').or(
-      page.locator('img[alt*="pokemon"]').first()
-    );
-    this.pokemonType = page.locator('[data-testid="pokemon-type"]').or(
-      page.locator('.pokemon-type').first()
-    );
-    this.regionTabs = page.locator('[data-testid="region-tab"]').or(
-      page.locator('.region-tab')
-    );
-    this.starterPokemon = page.locator('[data-testid="starter-pokemon"]').or(
-      page.locator('.starter-pokemon')
-    );
-    this.loadingSpinner = page.locator('[data-testid="loading"]').or(
-      page.locator('.loading, .spinner')
-    );
-    this.errorMessage = page.locator('[data-testid="error-message"]').or(
-      page.locator('.error, .error-message')
-    );
-    this.suggestionsList = page.locator('[data-testid="suggestions-list"]').or(
-      page.locator('.suggestions, .autocomplete')
-    );
-    this.suggestionItems = page.locator('[data-testid="suggestion-item"]').or(
-      page.locator('.suggestion-item, .autocomplete-item')
-    );
-    this.mainContent = page.getByRole('main').or(
-      page.locator('main, .main-content')
-    );
+    this.searchInput = page
+      .getByPlaceholder('Search for a Pokemon...')
+      .or(page.locator('input[type="search"]'));
+    this.searchButton = page
+      .getByRole('button', { name: /search/i })
+      .or(page.locator('button[type="submit"]'));
+    this.pokemonCard = page
+      .locator('[data-testid="pokemon-card"]')
+      .or(page.locator('.pokemon-card').first());
+    this.pokemonName = page
+      .locator('[data-testid="pokemon-name"]')
+      .or(page.locator('.pokemon-name').first());
+    this.pokemonImage = page
+      .locator('[data-testid="pokemon-image"]')
+      .or(page.locator('img[alt*="pokemon"]').first());
+    this.pokemonType = page
+      .locator('[data-testid="pokemon-type"]')
+      .or(page.locator('.pokemon-type').first());
+    this.regionTabs = page.locator('[data-testid="region-tab"]').or(page.locator('.region-tab'));
+    this.starterPokemon = page
+      .locator('[data-testid="starter-pokemon"]')
+      .or(page.locator('.starter-pokemon'));
+    this.loadingSpinner = page
+      .locator('[data-testid="loading"]')
+      .or(page.locator('.loading, .spinner'));
+    this.errorMessage = page
+      .locator('[data-testid="error-message"]')
+      .or(page.locator('.error, .error-message'));
+    this.suggestionsList = page
+      .locator('[data-testid="suggestions-list"]')
+      .or(page.locator('.suggestions, .autocomplete'));
+    this.suggestionItems = page
+      .locator('[data-testid="suggestion-item"]')
+      .or(page.locator('.suggestion-item, .autocomplete-item'));
+    this.mainContent = page.getByRole('main').or(page.locator('main, .main-content'));
   }
 
   // Navigation methods
@@ -86,30 +82,30 @@ export class PokemonAppPage {
 
   async waitForSearchResults(): Promise<void> {
     // Wait for loading to disappear
-    await this.loadingSpinner.waitFor({ 
-      state: 'hidden', 
-      timeout: TestData.ui.timeouts.medium 
+    await this.loadingSpinner.waitFor({
+      state: 'hidden',
+      timeout: TestData.ui.timeouts.medium,
     });
-    
+
     // Wait for either pokemon card or error message
     await Promise.race([
-      this.pokemonCard.waitFor({ 
-        state: 'visible', 
-        timeout: TestData.ui.timeouts.medium 
+      this.pokemonCard.waitFor({
+        state: 'visible',
+        timeout: TestData.ui.timeouts.medium,
       }),
-      this.errorMessage.waitFor({ 
-        state: 'visible', 
-        timeout: TestData.ui.timeouts.short 
-      })
+      this.errorMessage.waitFor({
+        state: 'visible',
+        timeout: TestData.ui.timeouts.short,
+      }),
     ]);
   }
 
   // Search suggestions
   async typeSearchQuery(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    await this.suggestionsList.waitFor({ 
-      state: 'visible', 
-      timeout: TestData.ui.timeouts.short 
+    await this.suggestionsList.waitFor({
+      state: 'visible',
+      timeout: TestData.ui.timeouts.short,
     });
   }
 
@@ -125,8 +121,8 @@ export class PokemonAppPage {
 
   // Region navigation
   async selectRegion(regionData: RegionData): Promise<void> {
-    const regionTab = this.page.getByRole('button', { 
-      name: new RegExp(regionData.name, 'i') 
+    const regionTab = this.page.getByRole('button', {
+      name: new RegExp(regionData.name, 'i'),
     });
     await regionTab.click();
     await this.waitForRegionLoad();
@@ -134,19 +130,16 @@ export class PokemonAppPage {
 
   async waitForRegionLoad(): Promise<void> {
     await this.page.waitForTimeout(2000); // Allow time for region switch
-    await this.starterPokemon.first().waitFor({ 
-      state: 'visible', 
-      timeout: TestData.ui.timeouts.medium 
+    await this.starterPokemon.first().waitFor({
+      state: 'visible',
+      timeout: TestData.ui.timeouts.medium,
     });
   }
 
   // Verification methods
   async verifyPokemonDisplayed(pokemonData: PokemonData): Promise<void> {
     await expect(this.pokemonCard).toBeVisible();
-    await expect(this.pokemonName).toContainText(
-      pokemonData.expectedName, 
-      { ignoreCase: true }
-    );
+    await expect(this.pokemonName).toContainText(pokemonData.expectedName, { ignoreCase: true });
     await expect(this.pokemonImage).toBeVisible();
     await expect(this.pokemonImage).toHaveAttribute('src', /.+/);
   }
@@ -164,8 +157,8 @@ export class PokemonAppPage {
     expect(starterCount).toBeGreaterThan(0);
 
     const pageContent = await this.page.textContent('body');
-    const hasExpectedStarters = regionData.starters.some(starter => 
-      new RegExp(starter, 'i').test(pageContent || '')
+    const hasExpectedStarters = regionData.starters.some((starter) =>
+      new RegExp(starter, 'i').test(pageContent || ''),
     );
     expect(hasExpectedStarters).toBeTruthy();
   }
@@ -176,12 +169,90 @@ export class PokemonAppPage {
     expect(suggestionCount).toBeGreaterThanOrEqual(minCount);
   }
 
+  // Team management methods
+  async navigateToTeamTab(): Promise<void> {
+    await this.page.click(
+      '[data-testid="team-tab"], button:has-text("Team"), .tab:has-text("Team")',
+    );
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  async addPokemonToTeam(): Promise<void> {
+    const addButton = this.page
+      .locator('[data-testid="add-to-team-button"], button:has-text("Add to Team"), .add-to-team')
+      .first();
+    await expect(addButton).toBeVisible({ timeout: TestData.ui.timeout });
+    await addButton.click();
+    await this.page.waitForTimeout(500); // Wait for team update
+  }
+
+  async removePokemonFromTeam(pokemonName?: string): Promise<void> {
+    if (pokemonName) {
+      // Remove specific Pokemon by name
+      const removeButton = this.page
+        .locator(
+          `[data-testid="remove-${pokemonName.toLowerCase()}"], button[data-pokemon="${pokemonName.toLowerCase()}"]`,
+        )
+        .first();
+      await expect(removeButton).toBeVisible({ timeout: TestData.ui.timeout });
+      await removeButton.click();
+    } else {
+      // Remove first Pokemon in team
+      const removeButton = this.page
+        .locator('[data-testid*="remove-"], .remove-from-team, button:has-text("Remove")')
+        .first();
+      await expect(removeButton).toBeVisible({ timeout: TestData.ui.timeout });
+      await removeButton.click();
+    }
+    await this.page.waitForTimeout(500); // Wait for team update
+  }
+
+  async getTeamSize(): Promise<number> {
+    const teamMembers = this.page
+      .locator('[data-testid="team-member"], .team-pokemon, .pokemon-card')
+      .all();
+    return (await teamMembers).length;
+  }
+
+  async verifyPokemonInTeam(pokemonName: string): Promise<void> {
+    const teamMember = this.page
+      .locator(
+        `[data-testid="team-${pokemonName.toLowerCase()}"], .team-pokemon:has-text("${pokemonName}"), .pokemon-card:has-text("${pokemonName}")`,
+      )
+      .first();
+    await expect(teamMember).toBeVisible({ timeout: TestData.ui.timeout });
+  }
+
+  async verifyPokemonNotInTeam(pokemonName: string): Promise<void> {
+    const teamMember = this.page
+      .locator(
+        `[data-testid="team-${pokemonName.toLowerCase()}"], .team-pokemon:has-text("${pokemonName}"), .pokemon-card:has-text("${pokemonName}")`,
+      )
+      .first();
+    await expect(teamMember).not.toBeVisible();
+  }
+
+  async verifyTeamMessage(expectedMessage: string): Promise<void> {
+    const messageElement = this.page
+      .locator('[data-testid="team-message"], .team-message, .message, .notification')
+      .first();
+    await expect(messageElement).toBeVisible({ timeout: TestData.ui.timeout });
+    await expect(messageElement).toContainText(expectedMessage);
+  }
+
+  async verifyTeamFull(): Promise<void> {
+    const teamSize = await this.getTeamSize();
+    expect(teamSize).toBe(TestData.team.maxSize);
+  }
+
+  async verifyTeamEmpty(): Promise<void> {
+    const teamSize = await this.getTeamSize();
+    expect(teamSize).toBe(0);
+  }
+
   // Utility methods
   async takeScreenshot(name: string): Promise<void> {
-    await this.page.screenshot({ 
-      path: `test-results/${name}.png`,
-      fullPage: true 
-    });
+    await this.page.screenshot({ path: `test-results/${name}.png`, fullPage: true });
   }
 
   async simulateNetworkError(): Promise<void> {
@@ -190,23 +261,30 @@ export class PokemonAppPage {
     });
   }
 
+  async verifyErrorDisplayed(): Promise<void> {
+    const errorElement = this.page
+      .locator('[data-testid="error-message"], .error, [class*="error"]')
+      .first();
+    await expect(errorElement).toBeVisible({ timeout: TestData.ui.timeout });
+  }
+
   async getPageErrors(): Promise<string[]> {
     const errors: string[] = [];
     this.page.on('pageerror', (error) => errors.push(error.message));
     await this.page.waitForTimeout(3000);
-    return errors.filter(error => !error.includes('Warning'));
+    return errors.filter((error) => !error.includes('Warning'));
   }
 
   // Region-specific methods
   async isRegionTabVisible(regionName: string): Promise<boolean> {
-    const regionTab = this.page.getByRole('button', { 
-      name: new RegExp(regionName, 'i') 
+    const regionTab = this.page.getByRole('button', {
+      name: new RegExp(regionName, 'i'),
     });
     return await regionTab.isVisible();
   }
 
   async getDisplayedPokemonName(): Promise<string> {
-    return await this.pokemonName.textContent() || '';
+    return (await this.pokemonName.textContent()) || '';
   }
 
   async isPokemonImageLoaded(): Promise<boolean> {
