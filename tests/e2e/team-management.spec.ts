@@ -88,7 +88,7 @@ test.describe('Team Management', () => {
   test('should prevent adding Pokemon when team is full (6 Pokemon)', async ({ page: _page }) => {
     // Arrange - Add 6 Pokemon to fill the team
     const testTeam = TestData.team.testTeam;
-    
+
     for (const pokemon of testTeam) {
       await pokemonApp.searchForPokemon(pokemon);
       await pokemonApp.addPokemonToTeam();

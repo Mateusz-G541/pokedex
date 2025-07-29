@@ -86,10 +86,10 @@ test.describe('Application Smoke Tests', () => {
     await pokemonApp.searchForPokemon(testPokemon);
 
     // Assert - Verify no critical JavaScript errors occurred
-    const criticalErrors = jsErrors.filter((error) => 
-      error.includes('TypeError') || error.includes('ReferenceError')
+    const criticalErrors = jsErrors.filter(
+      (error) => error.includes('TypeError') || error.includes('ReferenceError'),
     );
-    
+
     expect(
       criticalErrors.length,
       `Critical JavaScript errors occurred: ${criticalErrors.join(', ')}`,

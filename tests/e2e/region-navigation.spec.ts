@@ -79,10 +79,10 @@ test.describe('Region Navigation', () => {
         const isVisible = await pokemonApp.isRegionTabVisible(region.name);
         if (isVisible) {
           await pokemonApp.selectRegion(region.name);
-          
+
           // Verify no errors occurred
           await pokemonApp.verifyNoErrors();
-          
+
           // Small delay between switches
           await pokemonApp.waitForTimeout(500);
         }

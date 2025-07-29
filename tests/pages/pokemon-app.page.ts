@@ -299,13 +299,15 @@ export class PokemonAppPage {
 
   // Random Pokemon functionality
   async clickRandomButton(): Promise<void> {
-    const randomButton = this.page.getByTestId('random-button')
+    const randomButton = this.page
+      .getByTestId('random-button')
       .or(this.page.getByRole('button', { name: /random/i }));
     await randomButton.click();
   }
 
   async clickRandomLegendaryButton(): Promise<void> {
-    const legendaryButton = this.page.getByTestId('legendary-button')
+    const legendaryButton = this.page
+      .getByTestId('legendary-button')
       .or(this.page.getByRole('button', { name: /legendary/i }));
     await legendaryButton.click();
   }
@@ -318,25 +320,28 @@ export class PokemonAppPage {
 
   async getCurrentPokemonId(): Promise<number> {
     // Extract Pokemon ID from the displayed Pokemon data
-    const pokemonIdElement = this.page.locator('[data-testid="pokemon-id"]')
+    const pokemonIdElement = this.page
+      .locator('[data-testid="pokemon-id"]')
       .or(this.page.locator('.pokemon-id'));
-    
+
     if (await pokemonIdElement.isVisible()) {
       const idText = await pokemonIdElement.textContent();
       return parseInt(idText?.replace(/\D/g, '') || '0', 10);
     }
-    
+
     // Fallback: extract from URL or other sources
     const currentUrl = this.page.url();
     const idMatch = currentUrl.match(/pokemon\/(\d+)/);
     if (idMatch) {
       return parseInt(idMatch[1], 10);
     }
-    
+
     // Last resort: extract from Pokemon name if it's a known Pokemon
     const pokemonName = await this.getPokemonName();
     const knownPokemon = Object.values(TestData.pokemon);
-    const foundPokemon = knownPokemon.find(p => p.name.toLowerCase() === pokemonName.toLowerCase());
+    const foundPokemon = knownPokemon.find(
+      (p) => p.name.toLowerCase() === pokemonName.toLowerCase(),
+    );
     return foundPokemon ? parseInt(foundPokemon.searchTerm) : 0;
   }
 
