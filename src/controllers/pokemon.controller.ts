@@ -44,7 +44,7 @@ export class PokemonController {
   async getDebugInfo(req: Request, res: Response): Promise<void> {
     try {
       const debugInfo = {
-        customApiUrl: process.env.CUSTOM_POKEMON_API_URL || 'Not set',
+        customApiUrl: 'http://srv36.mikr.us:20275/api/v2',
         nodeEnv: process.env.NODE_ENV || 'Not set',
         timestamp: new Date().toISOString(),
       };
