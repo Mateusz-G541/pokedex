@@ -759,7 +759,7 @@ function App() {
   };
 
   const handleRandom = () => {
-    const randomId = Math.floor(Math.random() * 898) + 1; // There are 898 Pokémon in the API
+    const randomId = Math.floor(Math.random() * 151) + 1; // Generation 1 Pokémon only (1-151)
     setSearchTerm(randomId.toString());
     fetchPokemon(randomId);
   };
@@ -1272,7 +1272,7 @@ function App() {
     setIsLoadingFiltered(true);
     try {
       for (let i = 0; i < 3; i++) {
-        const randomId = Math.floor(Math.random() * 898) + 1;
+        const randomId = Math.floor(Math.random() * 151) + 1; // Generation 1 only
         const response = await axios.get(`${API_URL}/api/pokemon/${randomId}`);
         opponentTeam.push(response.data);
       }
