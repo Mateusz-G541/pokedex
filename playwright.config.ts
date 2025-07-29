@@ -26,6 +26,21 @@ export default defineConfig({
       testMatch: /.*\.api\.spec\.ts/,
       timeout: 60000,
     },
+    {
+      name: 'e2e',
+      testMatch: /.*\.frontend\.spec\.ts/,
+      timeout: 60000,
+      use: {
+        baseURL,
+        trace: 'on-first-retry',
+        actionTimeout: 30000,
+        navigationTimeout: 30000,
+        ignoreHTTPSErrors: true,
+        viewport: { width: 1280, height: 720 },
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+      },
+    },
   ],
   globalSetup: require.resolve('./tests/setup/global-setup.ts'),
 });
