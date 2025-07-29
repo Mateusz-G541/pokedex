@@ -296,4 +296,70 @@ export class PokemonAppPage {
       return false;
     }
   }
+
+  // Random Pokemon functionality
+  async clickRandomButton(): Promise<void> {
+    const randomButton = this.page.getByTestId('random-button')
+      .or(this.page.getByRole('button', { name: /random/i }));
+    await randomButton.click();
+  }
+
+  async clickRandomLegendaryButton(): Promise<void> {
+    const legendaryButton = this.page.getByTestId('legendary-button')
+      .or(this.page.getByRole('button', { name: /legendary/i }));
+    await legendaryButton.click();
+  }
+
+  async waitForPokemonLoad(): Promise<void> {
+    // Wait for loading to disappear and Pokemon to be displayed
+    await this.loadingSpinner.waitFor({ state: 'hidden', timeout: TestData.ui.timeouts.medium });
+    await this.pokemonCard.waitFor({ state: 'visible', timeout: TestData.ui.timeouts.medium });
+  }
+
+  async getCurrentPokemonId(): Promise<number> {
+    // Extract Pokemon ID from the displayed Pokemon data
+    const pokemonIdElement = this.page.locator('[data-testid="pokemon-id"]')
+      .or(this.page.locator('.pokemon-id'));
+    
+    if (await pokemonIdElement.isVisible()) {
+      const idText = await pokemonIdElement.textContent();
+      return parseInt(idText?.replace(/\D/g, '') || '0', 10);
+    }
+    
+    // Fallback: extract from URL or other sources
+    const currentUrl = this.page.url();
+    const idMatch = currentUrl.match(/pokemon\/(\d+)/);
+    if (idMatch) {
+      return parseInt(idMatch[1], 10);
+    }
+    
+    // Last resort: extract from Pokemon name if it's a known Pokemon
+    const pokemonName = await this.getPokemonName();
+    const knownPokemon = Object.values(TestData.pokemon);
+    const foundPokemon = knownPokemon.find(p => p.name.toLowerCase() === pokemonName.toLowerCase());
+    return foundPokemon ? parseInt(foundPokemon.searchTerm) : 0;
+  }
+
+  async getPokemonName(): Promise<string> {
+    await expect(this.pokemonName).toBeVisible();
+    return (await this.pokemonName.textContent()) || '';
+  }
+
+  async waitForTimeout(ms: number): Promise<void> {
+    await this.page.waitForTimeout(ms);
+  }
+
+  // Additional helper methods for new test files
+  async typeInSearchInput(text: string): Promise<void> {
+    await this.searchInput.fill(text);
+  }
+
+  async verifyPageLoaded(): Promise<void> {
+    await expect(this.mainContent).toBeVisible();
+    await expect(this.searchInput).toBeVisible();
+  }
+
+  async verifyErrorDisplayed(): Promise<void> {
+    await expect(this.errorMessage).toBeVisible();
+  }
 }
