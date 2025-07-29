@@ -17,7 +17,7 @@ test.describe('Pokemon Frontend E2E Tests', () => {
     await pokemonApp.navigate();
   });
 
-  test('should successfully search for Pokemon and display details', async ({ page }) => {
+  test('should successfully search for Pokemon and display details', async ({ page: _page }) => {
     // Arrange - Use test data
     const testPokemon = TestData.pokemon.pikachu;
 
@@ -36,7 +36,9 @@ test.describe('Pokemon Frontend E2E Tests', () => {
     await pokemonApp.takeScreenshot('pokemon-search-success');
   });
 
-  test('should navigate regions and display starter Pokemon with suggestions', async ({ page: _page }) => {
+  test('should navigate regions and display starter Pokemon with suggestions', async ({
+    page: _page,
+  }) => {
     // Arrange - Use test data
     const kantoRegion = TestData.regions.kanto;
     const suggestionData = TestData.search.suggestions;
