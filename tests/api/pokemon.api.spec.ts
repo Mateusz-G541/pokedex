@@ -131,3 +131,123 @@ test.describe('Pokemon API', () => {
     expect(legendaryIds).toContain(data.id);
   });
 });
+
+// Mikr.us Custom Pokemon API Integration Tests
+test.describe('Mikr.us Pokemon API Integration', () => {
+  const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
+
+  test('GET /pokemon/:id from Mikr.us API returns Pokemon data', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon/25`); // Pikachu
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.name).toBe('pikachu');
+    expect(data.id).toBe(25);
+    expect(data.types).toBeDefined();
+    expect(data.sprites).toBeDefined();
+    expect(data.sprites.front_default).toContain('srv36.mikr.us:20275'); // Verify local image URLs
+  });
+
+  test('GET /pokemon/:name from Mikr.us API returns Pokemon data', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon/charizard`);
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.name).toBe('charizard');
+    expect(data.id).toBe(6);
+    expect(data.types).toBeDefined();
+    expect(data.types.some((t: PokemonType) => t.type.name === 'fire')).toBeTruthy();
+    expect(data.sprites.front_default).toContain('srv36.mikr.us:20275');
+  });
+
+  test('GET /pokemon?limit=151 from Mikr.us API returns Generation 1 Pokemon list', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon?limit=151`);
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.results).toBeDefined();
+    expect(data.results.length).toBe(151);
+    expect(data.count).toBe(151);
+
+    // Verify first and last Pokemon
+    expect(data.results[0].name).toBe('bulbasaur');
+    expect(data.results[150].name).toBe('mew');
+
+    // Verify URLs point to Mikr.us
+    expect(data.results[0].url).toContain('srv36.mikr.us:20275');
+  });
+
+  test('GET /pokemon-species/:id from Mikr.us API returns species data', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon-species/1`); // Bulbasaur
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.name).toBe('bulbasaur');
+    expect(data.id).toBe(1);
+    expect(data.evolution_chain).toBeDefined();
+    expect(data.evolution_chain.url).toContain('srv36.mikr.us:20275');
+  });
+
+  test('GET /evolution-chain/:id from Mikr.us API returns evolution data', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/evolution-chain/1`);
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.chain).toBeDefined();
+    expect(data.chain.species).toBeDefined();
+    expect(data.chain.species.name).toBe('bulbasaur');
+  });
+
+  test('GET /type/:name from Mikr.us API returns type data', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/type/fire`);
+    expect(response.ok()).toBeTruthy();
+
+    const data = await response.json();
+    expect(data.name).toBe('fire');
+    expect(data.pokemon).toBeDefined();
+    expect(Array.isArray(data.pokemon)).toBeTruthy();
+
+    // Verify fire-type Pokemon are included
+    const firePokemons = data.pokemon.map((p: { pokemon: { name: string } }) => p.pokemon.name);
+    expect(firePokemons).toContain('charmander');
+    expect(firePokemons).toContain('charizard');
+  });
+
+  test('Mikr.us API handles invalid Pokemon ID gracefully', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon/999`);
+    expect(response.status()).toBe(404);
+
+    const data = await response.json();
+    expect(data.error).toBe('Pokemon not found');
+  });
+
+  test('Mikr.us API handles invalid Pokemon name gracefully', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon/invalidname`);
+    expect(response.status()).toBe(404);
+
+    const data = await response.json();
+    expect(data.error).toBe('Pokemon not found');
+  });
+
+  test('Mikr.us API enforces Generation 1 limit (ID > 151)', async ({ request }) => {
+    const response = await request.get(`${MIKRUS_API_BASE}/pokemon/152`); // Chikorita (Gen 2)
+    expect(response.status()).toBe(404);
+
+    const data = await response.json();
+    expect(data.error).toBe('Pokemon not found');
+  });
+
+  test('Mikr.us API images are accessible', async ({ request }) => {
+    // First get Pokemon data to get image URL
+    const pokemonResponse = await request.get(`${MIKRUS_API_BASE}/pokemon/1`);
+    expect(pokemonResponse.ok()).toBeTruthy();
+
+    const pokemonData = await pokemonResponse.json();
+    const imageUrl = pokemonData.sprites.front_default;
+
+    // Test if image is accessible
+    const imageResponse = await request.get(imageUrl);
+    expect(imageResponse.ok()).toBeTruthy();
+    expect(imageResponse.headers()['content-type']).toContain('image');
+  });
+});

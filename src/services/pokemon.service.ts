@@ -90,7 +90,7 @@ export class PokemonService {
     return response.data.results.map((type: { name: string }) => type.name);
   }
 
-  private getRegions(): Region[] {
+  public getRegions(): Region[] {
     return [
       {
         name: 'kanto',
