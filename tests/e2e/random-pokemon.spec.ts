@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { PokemonAppPage } from '../pages/pokemon-app.page';
-import { TestData } from '../data/pokemon.test-data';
 import { TestHelpers } from '../helpers/test.helpers';
 
 test.describe('Random Pokemon Functionality', () => {
