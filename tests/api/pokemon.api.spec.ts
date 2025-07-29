@@ -135,6 +135,12 @@ test.describe('Pokemon API', () => {
 // Mikr.us Custom Pokemon API Integration Tests
 test.describe('Mikr.us Pokemon API Integration', () => {
   const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
+  test.beforeEach(async () => {
+    // Skip tests in CI environments where Mikr.us server isn't accessible
+    test.skip(isCI, 'Skipping Mikr.us integration tests in CI environment');
+  });
 
   test('GET /pokemon/:id from Mikr.us API returns Pokemon data', async ({ request }) => {
     const response = await request.get(`${MIKRUS_API_BASE}/pokemon/25`); // Pikachu
