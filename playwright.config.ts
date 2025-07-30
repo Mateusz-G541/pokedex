@@ -22,13 +22,15 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'api',
-      testMatch: /.*\.api\.spec\.ts/,
+      name: 'API Tests',
+      testDir: './tests/api',
+      testMatch: '**/*.api.spec.ts',
       timeout: 60000,
     },
     {
-      name: 'e2e',
-      testMatch: /.*\.frontend\.spec\.ts/,
+      name: 'E2E Tests',
+      testDir: './tests/e2e',
+      testMatch: '**/*.spec.ts',
       timeout: 60000,
       use: {
         baseURL,
