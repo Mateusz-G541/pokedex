@@ -133,31 +133,49 @@ test.describe('Pokemon API', () => {
 });
 
 // Mikr.us Custom Pokemon API Integration Tests
-test.describe('Mikr.us Pokemon API Integration', () => {
-  const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
-  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+// Skip entire test suite in CI environments to prevent hanging
+const isCI = process.env.CI === 'true' ||
+  process.env.GITHUB_ACTIONS === 'true' ||
+  process.env.NODE_ENV === 'test';
 
-  // Helper function to check server connectivity with timeout
+test.describe('Mikr.us Pokemon API Integration', () => {
+  // Skip all tests in this describe block if in CI
+  test.skip(isCI, 'Skipping Mikr.us integration tests in CI environment');
+  const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
+
+  // Helper function to check server connectivity with aggressive timeout
   async function checkServerConnectivity(request: any): Promise<boolean> {
+    // Always return false in CI to avoid hanging
+    if (isCI) {
+      console.log('CI environment detected - skipping Mikr.us connectivity check');
+      return false;
+    }
+
     try {
-      const response = await request.get(`${MIKRUS_API_BASE}/health`, {
-        timeout: 5000, // 5 second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+      const response = await request.get(`${MIKRUS_API_BASE}/pokemon/1`, {
+        timeout: 3000,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
       return response.ok();
-    } catch (error) {
+    } catch (error: any) {
       console.log('Mikr.us server not accessible:', error.message);
       return false;
     }
   }
 
   test.beforeEach(async ({ request }) => {
-    // Skip tests in CI environments where Mikr.us server isn't accessible
+    // Always skip in CI environments to prevent hanging
     if (isCI) {
       test.skip(true, 'Skipping Mikr.us integration tests in CI environment');
       return;
     }
 
-    // Check server connectivity before running tests
+    // For local development, check server connectivity with timeout
     const isServerAccessible = await checkServerConnectivity(request);
     test.skip(!isServerAccessible, 'Skipping Mikr.us integration tests - server not accessible');
   });
