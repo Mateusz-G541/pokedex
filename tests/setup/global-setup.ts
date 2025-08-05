@@ -8,18 +8,50 @@ declare global {
 async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
   let attempts = 0;
   const host = '127.0.0.1';
+  const healthEndpoints = [
+    `/api/pokemon/types`,
+    `/api/pokemon/1`,
+    `/api/health`,
+    `/` // Fallback to root
+  ];
+
+  console.log(`Waiting for server at http://${host}:${port}...`);
 
   while (attempts < maxAttempts) {
-    try {
-      const response = await fetch(`http://${host}:${port}/api/pokemon/types`);
-      if (response.ok) {
-        return true;
+    for (const endpoint of healthEndpoints) {
+      try {
+        console.log(`Attempt ${attempts + 1}/${maxAttempts}: Checking ${endpoint}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout per request
+        
+        const response = await fetch(`http://${host}:${port}${endpoint}`, {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          console.log(`✅ Server is ready! Responded to ${endpoint}`);
+          return true;
+        } else {
+          console.log(`⚠️ Server responded with status ${response.status} for ${endpoint}`);
+        }
+      } catch (error: any) {
+        console.log(`❌ Failed to connect to ${endpoint}: ${error.message}`);
+        // Continue to next endpoint
       }
-    } catch (error) {
-      attempts++;
-      await setTimeout(1000);
+    }
+    
+    attempts++;
+    if (attempts < maxAttempts) {
+      console.log(`Waiting 2 seconds before next attempt...`);
+      await setTimeout(2000);
     }
   }
+  
+  console.error(`❌ Server failed to respond to any health check after ${maxAttempts} attempts`);
   return false;
 }
 
@@ -50,7 +82,7 @@ async function globalSetup() {
   });
 
   // Wait for server to start
-  const isServerReady = await waitForServer(parseInt(port), 30);
+  const isServerReady = await waitForServer(parseInt(port.toString()), 30);
 
   if (!isServerReady) {
     console.error('Server failed to start. Logs:');
@@ -61,7 +93,7 @@ async function globalSetup() {
   console.log('Server is ready!');
 
   // Store server process for cleanup
-  global.__SERVER__ = server;
+  (global as any).__SERVER__ = server;
 }
 
 export default globalSetup;

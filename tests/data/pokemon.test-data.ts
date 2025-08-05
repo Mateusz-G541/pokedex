@@ -1,4 +1,19 @@
-// Test data for Pokemon E2E tests
+/**
+ * Legacy Test Data Export
+ * 
+ * WHY: Maintains backward compatibility while transitioning to new factory pattern
+ * TODO: Gradually migrate all test files to use TestDataFactory directly
+ */
+
+import { TestDataFactory } from './factory/test-data.factory';
+import { Generation1Pokemon } from './pokemon/generation1.data';
+import { UIData, ValidationRules, ErrorMessages } from './ui/interface.data';
+import { TestScenarios } from './scenarios/test-scenarios.data';
+
+// Create factory instance for backward compatibility
+const factory = TestDataFactory.getInstance();
+
+// Legacy export structure for existing tests
 export const TestData = {
   pokemon: {
     pikachu: {

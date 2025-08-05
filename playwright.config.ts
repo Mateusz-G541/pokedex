@@ -13,6 +13,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  globalSetup: './tests/setup/global-setup-simple.ts',
+  globalTeardown: './tests/setup/global-teardown.ts',
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -44,5 +46,4 @@ export default defineConfig({
       },
     },
   ],
-  globalSetup: require.resolve('./tests/setup/global-setup.ts'),
 });

@@ -123,24 +123,19 @@ export class PokemonService {
     try {
       console.log('Fetching Pokemon suggestions for query:', query);
 
-      // Use official Pokémon API for suggestions (Generation 1 only, IDs 1-151)
-      const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=151&offset=0');
+      // Use custom Pokemon API service for suggestions (local JSON data)
+      const response = await axios.get(`${this.customApiUrl}/pokemon/suggestions?query=${query}`);
 
-      if (!response.data || !response.data.results) {
-        console.warn('Invalid response format from official Pokemon API for suggestions');
+      if (!response.data || !Array.isArray(response.data)) {
+        console.warn('Invalid response format from custom Pokemon API for suggestions');
         return this.getFallbackSuggestions(query);
       }
 
-      const pokemonList = response.data.results;
-      const suggestions = pokemonList
-        .map((p: { name: string }) => p.name)
-        .filter((name: string) => name.toLowerCase().includes(query.toLowerCase()))
-        .slice(0, 10); // Limit to 10 suggestions
-
-      console.log('Found suggestions from official API:', suggestions);
+      const suggestions = response.data;
+      console.log('Found suggestions from custom API:', suggestions);
       return suggestions;
     } catch (error) {
-      console.error('Error fetching Pokemon suggestions from official API:', error);
+      console.error('Error fetching Pokemon suggestions from custom API:', error);
       console.log('Falling back to hardcoded Generation 1 suggestions');
       return this.getFallbackSuggestions(query);
     }
