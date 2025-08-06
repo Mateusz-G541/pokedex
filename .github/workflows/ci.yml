@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 10
     services:
       pokemon-api-service:
-        image: YOUR_DOCKERHUB_USERNAME/pokemon-api-service:latest
+        image: quavaghar2/pokemon-api-service:latest
         ports:
           - 20275:20275
         options: >-
