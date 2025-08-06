@@ -40,6 +40,35 @@ jobs:
           node-version: '18.x'
           cache: 'npm'
 
+      # --- SERVICE DEBUGGING ---
+      - name: Debug Pokemon API Service
+        run: |
+          echo "🔍 Debugging Pokemon API Service..."
+          
+          # Check if container is running
+          docker ps -a
+          
+          # Get container ID for pokemon-api-service
+          CONTAINER_ID=$(docker ps -q --filter ancestor=quavaghar2/pokemon-api-service:latest)
+          echo "Container ID: $CONTAINER_ID"
+          
+          # Show container logs
+          if [ ! -z "$CONTAINER_ID" ]; then
+            echo "📋 Container logs:"
+            docker logs $CONTAINER_ID
+            
+            echo "🔍 Container inspect:"
+            docker inspect $CONTAINER_ID --format='{{.State.Health}}'
+            
+            echo "🌐 Testing health endpoint manually:"
+            curl -v http://localhost:20275/health || echo "Health endpoint failed"
+            
+            echo "🌐 Testing if port is accessible:"
+            nc -zv localhost 20275 || echo "Port 20275 not accessible"
+          else
+            echo "❌ No container found"
+          fi
+
       # --- SERVICE HEALTH CHECKS ---
       - name: Check Pokemon API Service status
         run: |
