@@ -16,14 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Login to DockerHub to avoid rate limiting and ensure reliable image pulls
-      - name: Log in to DockerHub
-        continue-on-error: true
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
       # Start Pokemon API Service manually to ensure latest image
       - name: Start Pokemon API Service
         run: |

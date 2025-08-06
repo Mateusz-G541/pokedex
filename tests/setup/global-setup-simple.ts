@@ -74,6 +74,10 @@ async function globalSetup() {
     console.error(`❌ Failed to start server: ${error.message}`);
   });
 
+  // Give server time to fully initialize
+  console.log('⏳ Waiting for server to fully initialize...');
+  await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
+
   // Wait for server to be ready
   const isServerReady = await waitForServer(port);
 
