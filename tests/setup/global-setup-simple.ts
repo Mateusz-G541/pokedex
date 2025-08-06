@@ -12,7 +12,7 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
     try {
       console.log(`📡 Attempt ${attempt}/${maxAttempts}: Checking server...`);
 
-      const response = await fetch(`http://localhost:${port}/api/pokemon/1`, {
+      const response = await fetch(`http://localhost:${port}/api/health`, {
         method: 'GET',
         headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(3000), // 3 second timeout
@@ -24,8 +24,9 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
       } else {
         console.log(`⚠️ Server responded with status ${response.status}`);
       }
-    } catch (error: any) {
-      console.log(`❌ Connection failed: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log(`❌ Connection failed: ${errorMessage}`);
     }
 
     if (attempt < maxAttempts) {

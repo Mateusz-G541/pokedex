@@ -9,8 +9,20 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      pokemon-api-service:
+        image: YOUR_DOCKERHUB_USERNAME/pokemon-api-service:latest
+        ports:
+          - 20275:20275
+        options: >-
+          --health-cmd "curl -f http://localhost:20275/api/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
+      POKEMON_API_URL: "http://localhost:20275/api/v2"
     steps:
       - uses: actions/checkout@v3
 
@@ -19,6 +31,13 @@ jobs:
         with:
           node-version: '18.x'
           cache: 'npm'
+
+      # --- SERVICE HEALTH CHECKS ---
+      - name: Check Pokemon API Service status
+        run: |
+          echo "🔍 Checking Pokemon API Service health..."
+          curl -f http://localhost:20275/api/health
+          echo "✅ Pokemon API Service is ready!"
 
       # --- BACKEND ---
       - name: Install backend dependencies

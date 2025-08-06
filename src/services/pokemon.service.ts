@@ -5,9 +5,12 @@ export class PokemonService {
   private readonly customApiUrl: string;
 
   constructor() {
-    // Use custom Pokemon API service hosted on Mikr.us
-    // Hardcoded URL for reliable connectivity
-    this.customApiUrl = 'http://srv36.mikr.us:20275/api/v2';
+    // Use environment variable for API URL, with fallback to remote service
+    // CI/CD will set POKEMON_API_URL to local service
+    // Production uses remote service for reliability
+    this.customApiUrl = process.env.POKEMON_API_URL || 'http://srv36.mikr.us:20275/api/v2';
+
+    console.log(`🔗 Pokemon API configured to use: ${this.customApiUrl}`);
   }
 
   // Helper method to validate Pokemon ID is within Generation 1 (1-151)
