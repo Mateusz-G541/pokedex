@@ -15,25 +15,20 @@ jobs:
         image: quavaghar2/pokemon-api-service:latest
         ports:
           - 20275:20275
-        # Temporarily disable health check to allow debugging
-        # options: >-
-        #   --health-cmd "curl -f http://localhost:20275/health || exit 1"
-        #   --health-interval 15s
-        #   --health-timeout 10s
-        #   --health-retries 8
-        #   --health-start-period 300s
+        options: >-
+          --health-cmd "curl -f http://localhost:20275/health || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 300s
     env:
       ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
       POKEMON_API_URL: "http://localhost:20275/api/v2"
     steps:
       - uses: actions/checkout@v3
 
-      # Login to DockerHub to avoid rate limiting and ensure reliable image pulls
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # DockerHub login removed - using public image pull
+      # If rate limiting becomes an issue, add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets
       
       - name: Use Node.js
         uses: actions/setup-node@v3
