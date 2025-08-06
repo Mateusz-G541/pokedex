@@ -34,6 +34,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
+      # Force pull latest image to ensure we get the newest version
+      - name: Pull latest Pokemon API Service image
+        run: |
+          echo "🔄 Pulling latest Pokemon API Service image..."
+          docker pull quavaghar2/pokemon-api-service:latest
+          echo "✅ Latest image pulled successfully"
+      
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
