@@ -5,13 +5,10 @@
  * TODO: Gradually migrate all test files to use TestDataFactory directly
  */
 
-import { TestDataFactory } from './factory/test-data.factory';
-import { Generation1Pokemon } from './pokemon/generation1.data';
-import { UIData, ValidationRules, ErrorMessages } from './ui/interface.data';
-import { TestScenarios } from './scenarios/test-scenarios.data';
+// import { TestDataFactory } from './factory/test-data.factory'; // Commented out until used
 
 // Create factory instance for backward compatibility
-const factory = TestDataFactory.getInstance();
+// const factory = TestDataFactory.getInstance(); // Commented out until used
 
 // Legacy export structure for existing tests
 export const TestData = {

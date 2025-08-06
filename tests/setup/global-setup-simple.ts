@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 
 declare global {
+  // eslint-disable-next-line no-var
   var __SERVER__: ChildProcess;
 }
 
