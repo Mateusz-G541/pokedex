@@ -121,6 +121,9 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Test backend
+        env:
+          POKEMON_API_URL: "http://localhost:20275/api/v2"
+          NODE_ENV: test
         run: npm run test:api
 
       # --- FRONTEND ---
