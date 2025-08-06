@@ -134,7 +134,8 @@ test.describe('Pokemon API', () => {
 
 // Mikr.us Custom Pokemon API Integration Tests
 // Skip entire test suite in CI environments to prevent hanging
-const isCI = process.env.CI === 'true' ||
+const isCI =
+  process.env.CI === 'true' ||
   process.env.GITHUB_ACTIONS === 'true' ||
   process.env.NODE_ENV === 'test';
 

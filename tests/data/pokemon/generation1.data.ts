@@ -1,6 +1,6 @@
 /**
  * Generation 1 Pokemon Test Data
- * 
+ *
  * WHY: Centralized Generation 1 Pokemon data ensures consistency across all tests
  * and provides a single source of truth for Pokemon validation
  */
@@ -21,10 +21,10 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['bulbasaur', 'ivysaur', 'venusaur'],
     sprites: {
-      front_default: '/images/pokemon/sprites/1.png'
-    }
+      front_default: '/images/pokemon/sprites/1.png',
+    },
   },
-  
+
   charmander: {
     id: 4,
     name: 'charmander',
@@ -37,10 +37,10 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['charmander', 'charmeleon', 'charizard'],
     sprites: {
-      front_default: '/images/pokemon/sprites/4.png'
-    }
+      front_default: '/images/pokemon/sprites/4.png',
+    },
   },
-  
+
   squirtle: {
     id: 7,
     name: 'squirtle',
@@ -53,8 +53,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['squirtle', 'wartortle', 'blastoise'],
     sprites: {
-      front_default: '/images/pokemon/sprites/7.png'
-    }
+      front_default: '/images/pokemon/sprites/7.png',
+    },
   },
 
   // Popular Pokemon for testing
@@ -69,8 +69,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: false,
     sprites: {
-      front_default: '/images/pokemon/sprites/25.png'
-    }
+      front_default: '/images/pokemon/sprites/25.png',
+    },
   },
 
   charizard: {
@@ -85,8 +85,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['charmander', 'charmeleon', 'charizard'],
     sprites: {
-      front_default: '/images/pokemon/sprites/6.png'
-    }
+      front_default: '/images/pokemon/sprites/6.png',
+    },
   },
 
   blastoise: {
@@ -101,8 +101,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['squirtle', 'wartortle', 'blastoise'],
     sprites: {
-      front_default: '/images/pokemon/sprites/9.png'
-    }
+      front_default: '/images/pokemon/sprites/9.png',
+    },
   },
 
   venusaur: {
@@ -117,8 +117,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['bulbasaur', 'ivysaur', 'venusaur'],
     sprites: {
-      front_default: '/images/pokemon/sprites/3.png'
-    }
+      front_default: '/images/pokemon/sprites/3.png',
+    },
   },
 
   // Psychic Pokemon for type testing
@@ -134,8 +134,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['abra', 'kadabra', 'alakazam'],
     sprites: {
-      front_default: '/images/pokemon/sprites/65.png'
-    }
+      front_default: '/images/pokemon/sprites/65.png',
+    },
   },
 
   // Fighting Pokemon
@@ -151,8 +151,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['machop', 'machoke', 'machamp'],
     sprites: {
-      front_default: '/images/pokemon/sprites/68.png'
-    }
+      front_default: '/images/pokemon/sprites/68.png',
+    },
   },
 
   // Ghost Pokemon
@@ -168,8 +168,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     isLegendary: false,
     evolutionChain: ['gastly', 'haunter', 'gengar'],
     sprites: {
-      front_default: '/images/pokemon/sprites/94.png'
-    }
+      front_default: '/images/pokemon/sprites/94.png',
+    },
   },
 
   // Legendary Pokemon - Critical for random legendary testing
@@ -184,8 +184,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: true,
     sprites: {
-      front_default: '/images/pokemon/sprites/144.png'
-    }
+      front_default: '/images/pokemon/sprites/144.png',
+    },
   },
 
   zapdos: {
@@ -199,8 +199,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: true,
     sprites: {
-      front_default: '/images/pokemon/sprites/145.png'
-    }
+      front_default: '/images/pokemon/sprites/145.png',
+    },
   },
 
   moltres: {
@@ -214,8 +214,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: true,
     sprites: {
-      front_default: '/images/pokemon/sprites/146.png'
-    }
+      front_default: '/images/pokemon/sprites/146.png',
+    },
   },
 
   mewtwo: {
@@ -229,8 +229,8 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: true,
     sprites: {
-      front_default: '/images/pokemon/sprites/150.png'
-    }
+      front_default: '/images/pokemon/sprites/150.png',
+    },
   },
 
   mew: {
@@ -244,16 +244,16 @@ export const Generation1Pokemon: Record<string, PokemonTestData> = {
     generation: 1,
     isLegendary: true,
     sprites: {
-      front_default: '/images/pokemon/sprites/151.png'
-    }
-  }
+      front_default: '/images/pokemon/sprites/151.png',
+    },
+  },
 };
 
 // Utility arrays for easy access
 export const Gen1Starters = [
   Generation1Pokemon.bulbasaur,
   Generation1Pokemon.charmander,
-  Generation1Pokemon.squirtle
+  Generation1Pokemon.squirtle,
 ];
 
 export const Gen1Legendaries = [
@@ -261,7 +261,7 @@ export const Gen1Legendaries = [
   Generation1Pokemon.zapdos,
   Generation1Pokemon.moltres,
   Generation1Pokemon.mewtwo,
-  Generation1Pokemon.mew
+  Generation1Pokemon.mew,
 ];
 
 export const Gen1Popular = [
@@ -271,7 +271,7 @@ export const Gen1Popular = [
   Generation1Pokemon.venusaur,
   Generation1Pokemon.alakazam,
   Generation1Pokemon.machamp,
-  Generation1Pokemon.gengar
+  Generation1Pokemon.gengar,
 ];
 
 // Generation 1 validation constants
@@ -280,5 +280,5 @@ export const GEN1_CONSTANTS = {
   MAX_ID: 151,
   TOTAL_COUNT: 151,
   LEGENDARY_IDS: [144, 145, 146, 150, 151],
-  STARTER_IDS: [1, 4, 7]
+  STARTER_IDS: [1, 4, 7],
 } as const;

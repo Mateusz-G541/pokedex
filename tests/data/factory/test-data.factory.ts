@@ -1,19 +1,24 @@
 /**
  * Test Data Factory
- * 
+ *
  * WHY: Centralized factory provides a single entry point for all test data,
  * making it easy to access and maintain test data across all test files
  */
 
-import { 
-  PokemonTestData, 
-  RegionTestData, 
-  TeamTestData, 
-  TestEnvironment, 
-  TestType 
+import {
+  PokemonTestData,
+  RegionTestData,
+  TeamTestData,
+  TestEnvironment,
+  TestType,
 } from '../types/test-data.types';
 
-import { Generation1Pokemon, Gen1Starters, Gen1Legendaries, GEN1_CONSTANTS } from '../pokemon/generation1.data';
+import {
+  Generation1Pokemon,
+  Gen1Starters,
+  Gen1Legendaries,
+  GEN1_CONSTANTS,
+} from '../pokemon/generation1.data';
 import { UIData, ValidationRules, ErrorMessages, EnvironmentConfig } from '../ui/interface.data';
 import { TestScenarios, APITestData, TestGenerators } from '../scenarios/test-scenarios.data';
 
@@ -31,7 +36,10 @@ export class TestDataFactory {
     this.testType = testType;
   }
 
-  public static getInstance(environment: TestEnvironment = 'local', testType: TestType = 'e2e'): TestDataFactory {
+  public static getInstance(
+    environment: TestEnvironment = 'local',
+    testType: TestType = 'e2e',
+  ): TestDataFactory {
     if (!TestDataFactory.instance) {
       TestDataFactory.instance = new TestDataFactory(environment, testType);
     }
@@ -48,7 +56,7 @@ export class TestDataFactory {
   }
 
   public getPokemonById(id: number): PokemonTestData | undefined {
-    return Object.values(Generation1Pokemon).find(pokemon => pokemon.id === id);
+    return Object.values(Generation1Pokemon).find((pokemon) => pokemon.id === id);
   }
 
   public getStarters(): PokemonTestData[] {
@@ -81,12 +89,12 @@ export class TestDataFactory {
     // Adjust timeouts based on environment
     const baseTimeouts = UIData.timeouts;
     const multiplier = this.environment === 'ci' ? 2 : 1;
-    
+
     return {
       short: baseTimeouts.short * multiplier,
       medium: baseTimeouts.medium * multiplier,
       long: baseTimeouts.long * multiplier,
-      network: baseTimeouts.network * multiplier
+      network: baseTimeouts.network * multiplier,
     };
   }
 
@@ -158,7 +166,7 @@ export class TestDataFactory {
         Generation1Pokemon.pikachu,
         Generation1Pokemon.charizard,
         Generation1Pokemon.blastoise,
-        Generation1Pokemon.venusaur
+        Generation1Pokemon.venusaur,
       ],
       duplicateTest: Generation1Pokemon.pikachu,
       fullTeamScenario: [
@@ -168,8 +176,8 @@ export class TestDataFactory {
         Generation1Pokemon.venusaur,
         Generation1Pokemon.alakazam,
         Generation1Pokemon.machamp,
-        Generation1Pokemon.gengar // 7th Pokemon to test full team
-      ]
+        Generation1Pokemon.gengar, // 7th Pokemon to test full team
+      ],
     };
   }
 
@@ -180,7 +188,7 @@ export class TestDataFactory {
       displayName: 'Kanto',
       starters: Gen1Starters,
       legendaries: Gen1Legendaries,
-      totalPokemon: GEN1_CONSTANTS.TOTAL_COUNT
+      totalPokemon: GEN1_CONSTANTS.TOTAL_COUNT,
     };
   }
 
@@ -230,9 +238,11 @@ export class TestDataFactory {
 
   // Environment Detection
   public isCI(): boolean {
-    return this.environment === 'ci' || 
-           process.env.CI === 'true' || 
-           process.env.GITHUB_ACTIONS === 'true';
+    return (
+      this.environment === 'ci' ||
+      process.env.CI === 'true' ||
+      process.env.GITHUB_ACTIONS === 'true'
+    );
   }
 
   public isLocal(): boolean {
@@ -245,23 +255,23 @@ export class TestDataFactory {
       unit: {
         pokemon: [Generation1Pokemon.pikachu, Generation1Pokemon.charizard],
         timeout: this.getTimeouts().short,
-        retries: 0
+        retries: 0,
       },
       integration: {
         pokemon: Object.values(Generation1Pokemon).slice(0, 5),
         timeout: this.getTimeouts().medium,
-        retries: 1
+        retries: 1,
       },
       e2e: {
         pokemon: Object.values(Generation1Pokemon),
         timeout: this.getTimeouts().long,
-        retries: 2
+        retries: 2,
       },
       api: {
         pokemon: [Generation1Pokemon.pikachu, Generation1Pokemon.mewtwo],
         timeout: this.getTimeouts().network,
-        retries: 3
-      }
+        retries: 3,
+      },
     };
 
     return testDataByType[this.testType];

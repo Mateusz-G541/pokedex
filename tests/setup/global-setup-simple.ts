@@ -6,17 +6,17 @@ declare global {
 
 async function waitForServer(port: number, maxAttempts: number = 30): Promise<boolean> {
   console.log(`🔍 Waiting for server on port ${port}...`);
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       console.log(`📡 Attempt ${attempt}/${maxAttempts}: Checking server...`);
-      
+
       const response = await fetch(`http://localhost:${port}/api/pokemon/1`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(3000) // 3 second timeout
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(3000), // 3 second timeout
       });
-      
+
       if (response.ok) {
         console.log(`✅ Server is ready on port ${port}!`);
         return true;
@@ -26,13 +26,13 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
     } catch (error: any) {
       console.log(`❌ Connection failed: ${error.message}`);
     }
-    
+
     if (attempt < maxAttempts) {
       console.log(`⏳ Waiting 2 seconds before next attempt...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
-  
+
   console.error(`❌ Server failed to start after ${maxAttempts} attempts`);
   return false;
 }
@@ -49,7 +49,7 @@ async function globalSetup() {
       ...process.env,
       PORT: port.toString(),
       NODE_ENV: 'development', // Use development mode for tests
-      HOST: '0.0.0.0'
+      HOST: '0.0.0.0',
     },
   });
 

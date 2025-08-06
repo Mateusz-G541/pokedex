@@ -1,6 +1,6 @@
 /**
  * Centralized Test Data Types
- * 
+ *
  * WHY: Type safety ensures test data consistency and catches errors at compile time
  */
 

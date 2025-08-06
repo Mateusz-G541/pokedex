@@ -1,6 +1,6 @@
 /**
  * Test Scenarios Data
- * 
+ *
  * WHY: Centralized test scenarios ensure comprehensive coverage and maintainable test cases
  */
 
@@ -13,100 +13,111 @@ export const TestScenarios: TestScenarios = {
       {
         query: 'pik',
         expectedResults: ['pikachu'],
-        description: 'Should find Pikachu with partial name'
+        description: 'Should find Pikachu with partial name',
       },
       {
         query: 'char',
         expectedResults: ['charmander', 'charmeleon', 'charizard'],
-        description: 'Should find Charmander evolution line'
+        description: 'Should find Charmander evolution line',
       },
       {
         query: 'bulbasaur',
         expectedResults: ['bulbasaur'],
-        description: 'Should find exact match for Bulbasaur'
+        description: 'Should find exact match for Bulbasaur',
       },
       {
         query: 'fire',
-        expectedResults: ['charmander', 'charmeleon', 'charizard', 'vulpix', 'ninetales', 'growlithe', 'arcanine', 'ponyta', 'rapidash', 'magmar'],
-        description: 'Should find Pokemon by type'
-      }
+        expectedResults: [
+          'charmander',
+          'charmeleon',
+          'charizard',
+          'vulpix',
+          'ninetales',
+          'growlithe',
+          'arcanine',
+          'ponyta',
+          'rapidash',
+          'magmar',
+        ],
+        description: 'Should find Pokemon by type',
+      },
     ],
-    
+
     invalid: [
       {
         query: '',
         expectedError: 'Search query too short',
-        description: 'Empty search should show error'
+        description: 'Empty search should show error',
       },
       {
         query: 'xyz123',
         expectedError: 'No Pokemon found matching your search',
-        description: 'Non-existent Pokemon should show no results'
+        description: 'Non-existent Pokemon should show no results',
       },
       {
         query: '!@#$%',
         expectedError: 'Invalid characters in search query',
-        description: 'Special characters should be handled gracefully'
-      }
+        description: 'Special characters should be handled gracefully',
+      },
     ],
-    
+
     edge: [
       {
         query: 'a',
         expectedBehavior: 'Should handle single character search',
-        description: 'Single character search edge case'
+        description: 'Single character search edge case',
       },
       {
         query: 'nidoran',
         expectedBehavior: 'Should handle Pokemon with gender variations',
-        description: 'Gender variation handling'
+        description: 'Gender variation handling',
       },
       {
         query: 'mr. mime',
         expectedBehavior: 'Should handle Pokemon with special characters',
-        description: 'Special character handling in names'
-      }
-    ]
+        description: 'Special character handling in names',
+      },
+    ],
   },
-  
+
   random: {
     standardTests: 5, // Test randomness 5 times
     legendaryTests: 3, // Test legendary randomness 3 times
-    generation1Validation: true
+    generation1Validation: true,
   },
-  
+
   team: {
     addScenarios: [
       {
         pokemon: 'pikachu',
         expectedOutcome: 'success',
-        description: 'Should successfully add Pikachu to empty team'
+        description: 'Should successfully add Pikachu to empty team',
       },
       {
         pokemon: 'pikachu', // Same Pokemon again
         expectedOutcome: 'duplicate',
-        description: 'Should prevent adding duplicate Pokemon'
+        description: 'Should prevent adding duplicate Pokemon',
       },
       {
         pokemon: 'charizard',
         expectedOutcome: 'success',
-        description: 'Should add different Pokemon to team'
-      }
+        description: 'Should add different Pokemon to team',
+      },
     ],
-    
+
     removeScenarios: [
       {
         pokemon: 'pikachu',
         expectedOutcome: 'success',
-        description: 'Should successfully remove Pokemon from team'
+        description: 'Should successfully remove Pokemon from team',
       },
       {
         pokemon: 'nonexistent',
         expectedOutcome: 'not_found',
-        description: 'Should handle removing non-existent Pokemon gracefully'
-      }
-    ]
-  }
+        description: 'Should handle removing non-existent Pokemon gracefully',
+      },
+    ],
+  },
 };
 
 export const APITestData: APITestData = {
@@ -116,27 +127,50 @@ export const APITestData: APITestData = {
     pokemonByName: (name: string) => `/api/pokemon/${name}`,
     types: '/api/pokemon/types',
     species: (id: number) => `/api/pokemon/species/${id}`,
-    evolutionChain: (id: number) => `/api/pokemon/evolution-chain/${id}`
+    evolutionChain: (id: number) => `/api/pokemon/evolution-chain/${id}`,
   },
-  
+
   validIds: [1, 25, 6, 9, 3, 65, 68, 94, 144, 145, 146, 150, 151],
   invalidIds: [0, -1, 152, 999, 1000],
-  
+
   validNames: [
-    'bulbasaur', 'charmander', 'squirtle', 'pikachu', 'charizard',
-    'blastoise', 'venusaur', 'alakazam', 'machamp', 'gengar',
-    'articuno', 'zapdos', 'moltres', 'mewtwo', 'mew'
+    'bulbasaur',
+    'charmander',
+    'squirtle',
+    'pikachu',
+    'charizard',
+    'blastoise',
+    'venusaur',
+    'alakazam',
+    'machamp',
+    'gengar',
+    'articuno',
+    'zapdos',
+    'moltres',
+    'mewtwo',
+    'mew',
   ],
-  
+
   invalidNames: [
-    '', 'nonexistent', '123', 'pokemon-that-does-not-exist',
-    'special!@#characters', 'toolongpokemonname' + 'x'.repeat(100)
+    '',
+    'nonexistent',
+    '123',
+    'pokemon-that-does-not-exist',
+    'special!@#characters',
+    'toolongpokemonname' + 'x'.repeat(100),
   ],
-  
+
   expectedFields: [
-    'id', 'name', 'types', 'sprites', 'height', 'weight',
-    'base_experience', 'species', 'stats'
-  ]
+    'id',
+    'name',
+    'types',
+    'sprites',
+    'height',
+    'weight',
+    'base_experience',
+    'species',
+    'stats',
+  ],
 };
 
 // Test data for different test types
@@ -145,41 +179,41 @@ export const TestDataByType = {
     pokemon: [
       Generation1Pokemon.pikachu,
       Generation1Pokemon.charizard,
-      Generation1Pokemon.bulbasaur
+      Generation1Pokemon.bulbasaur,
     ],
-    scenarios: ['basic functionality', 'error handling', 'edge cases']
+    scenarios: ['basic functionality', 'error handling', 'edge cases'],
   },
-  
+
   integration: {
     pokemon: [
       Generation1Pokemon.pikachu,
       Generation1Pokemon.charizard,
       Generation1Pokemon.alakazam,
-      Generation1Pokemon.gengar
+      Generation1Pokemon.gengar,
     ],
-    scenarios: ['API integration', 'data transformation', 'error propagation']
+    scenarios: ['API integration', 'data transformation', 'error propagation'],
   },
-  
+
   e2e: {
     pokemon: [
       Generation1Pokemon.pikachu,
       Generation1Pokemon.charizard,
       Generation1Pokemon.bulbasaur,
       Generation1Pokemon.squirtle,
-      Generation1Pokemon.charmander
+      Generation1Pokemon.charmander,
     ],
-    scenarios: ['user workflows', 'full feature testing', 'cross-browser compatibility']
+    scenarios: ['user workflows', 'full feature testing', 'cross-browser compatibility'],
   },
-  
+
   api: {
     pokemon: [
       Generation1Pokemon.pikachu,
       Generation1Pokemon.charizard,
       Generation1Pokemon.mewtwo,
-      Generation1Pokemon.mew
+      Generation1Pokemon.mew,
     ],
-    scenarios: ['endpoint testing', 'data validation', 'error responses']
-  }
+    scenarios: ['endpoint testing', 'data validation', 'error responses'],
+  },
 };
 
 // Performance testing data
@@ -188,26 +222,26 @@ export const PerformanceTestData = {
     concurrentUsers: 10,
     requestsPerSecond: 50,
     testDuration: 60000, // 1 minute
-    acceptableResponseTime: 2000 // 2 seconds
+    acceptableResponseTime: 2000, // 2 seconds
   },
-  
+
   stressTestScenarios: [
     {
       name: 'Heavy search load',
-      requests: TestScenarios.search.valid.map(s => s.query),
-      expectedMaxResponseTime: 3000
+      requests: TestScenarios.search.valid.map((s) => s.query),
+      expectedMaxResponseTime: 3000,
     },
     {
       name: 'Random Pokemon generation',
       requests: Array(20).fill('random'),
-      expectedMaxResponseTime: 1000
+      expectedMaxResponseTime: 1000,
     },
     {
       name: 'Team operations',
       requests: ['add', 'remove', 'add', 'remove'],
-      expectedMaxResponseTime: 1500
-    }
-  ]
+      expectedMaxResponseTime: 1500,
+    },
+  ],
 };
 
 // Data-driven test generators
@@ -215,19 +249,20 @@ export const TestGenerators = {
   generateSearchTests: (count: number = 10) => {
     return Array.from({ length: count }, (_, i) => ({
       query: Object.keys(Generation1Pokemon)[i % Object.keys(Generation1Pokemon).length],
-      expectedResult: Object.values(Generation1Pokemon)[i % Object.values(Generation1Pokemon).length],
-      testId: `search-test-${i + 1}`
+      expectedResult:
+        Object.values(Generation1Pokemon)[i % Object.values(Generation1Pokemon).length],
+      testId: `search-test-${i + 1}`,
     }));
   },
-  
+
   generateRandomTests: (count: number = 5) => {
     return Array.from({ length: count }, (_, i) => ({
       testId: `random-test-${i + 1}`,
       expectedIdRange: { min: GEN1_CONSTANTS.MIN_ID, max: GEN1_CONSTANTS.MAX_ID },
-      validationRules: ['generation1', 'validId', 'hasName']
+      validationRules: ['generation1', 'validId', 'hasName'],
     }));
   },
-  
+
   generateTeamTests: (maxTeamSize: number = 6) => {
     const testPokemon = Object.values(Generation1Pokemon).slice(0, maxTeamSize + 2);
     return testPokemon.map((pokemon, i) => ({
@@ -235,7 +270,7 @@ export const TestGenerators = {
       pokemon,
       expectedOutcome: i < maxTeamSize ? 'success' : 'full',
       teamSizeBefore: Math.min(i, maxTeamSize),
-      teamSizeAfter: Math.min(i + 1, maxTeamSize)
+      teamSizeAfter: Math.min(i + 1, maxTeamSize),
     }));
-  }
+  },
 };

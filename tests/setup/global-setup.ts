@@ -12,7 +12,7 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
     `/api/pokemon/types`,
     `/api/pokemon/1`,
     `/api/health`,
-    `/` // Fallback to root
+    `/`, // Fallback to root
   ];
 
   console.log(`Waiting for server at http://${host}:${port}...`);
@@ -21,17 +21,17 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
     for (const endpoint of healthEndpoints) {
       try {
         console.log(`Attempt ${attempts + 1}/${maxAttempts}: Checking ${endpoint}`);
-        
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout per request
-        
+
         const response = await fetch(`http://${host}:${port}${endpoint}`, {
           signal: controller.signal,
-          headers: { 'Accept': 'application/json' }
+          headers: { Accept: 'application/json' },
         });
-        
+
         clearTimeout(timeoutId);
-        
+
         if (response.ok) {
           console.log(`✅ Server is ready! Responded to ${endpoint}`);
           return true;
@@ -43,14 +43,14 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
         // Continue to next endpoint
       }
     }
-    
+
     attempts++;
     if (attempts < maxAttempts) {
       console.log(`Waiting 2 seconds before next attempt...`);
       await setTimeout(2000);
     }
   }
-  
+
   console.error(`❌ Server failed to respond to any health check after ${maxAttempts} attempts`);
   return false;
 }

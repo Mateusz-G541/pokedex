@@ -1,6 +1,6 @@
 /**
  * Legacy Test Data Export
- * 
+ *
  * WHY: Maintains backward compatibility while transitioning to new factory pattern
  * TODO: Gradually migrate all test files to use TestDataFactory directly
  */
