@@ -10,17 +10,8 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    services:
-      pokemon-api-service:
-        image: quavaghar2/pokemon-api-service:latest
-        ports:
-          - 20275:20275
-        options: >-
-          --health-cmd "curl -f http://localhost:20275/health || exit 1"
-          --health-interval 30s
-          --health-timeout 10s
-          --health-retries 10
-          --health-start-period 300s
+    # Service container removed - running Pokemon API Service manually in steps
+    # This ensures we always use the latest Docker image
     env:
       ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
       POKEMON_API_URL: "http://localhost:20275/api/v2"
@@ -34,12 +25,45 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      # Force pull latest image to ensure we get the newest version
-      - name: Pull latest Pokemon API Service image
+      # Start Pokemon API Service manually to ensure latest image
+      - name: Start Pokemon API Service
         run: |
-          echo "🔄 Pulling latest Pokemon API Service image..."
+          echo "🚀 Starting Pokemon API Service..."
+          
+          # Pull latest image
+          echo "🔄 Pulling latest image..."
           docker pull quavaghar2/pokemon-api-service:latest
-          echo "✅ Latest image pulled successfully"
+          
+          # Start container in background
+          echo "📦 Starting container..."
+          docker run -d \
+            --name pokemon-api-service \
+            -p 20275:20275 \
+            -e NODE_ENV=production \
+            -e ALLOWED_ORIGINS="https://pokedex-87cl.vercel.app,https://another-allowed-domain.com" \
+            quavaghar2/pokemon-api-service:latest
+          
+          # Wait for container to initialize (5 minutes for data loading)
+          echo "⏳ Waiting for Pokemon API Service to initialize (5 minutes)..."
+          sleep 300
+          
+          # Test health endpoint with retries
+          echo "🔍 Testing health endpoint..."
+          for i in {1..10}; do
+            if curl -f http://localhost:20275/health; then
+              echo "✅ Pokemon API Service is healthy!"
+              break
+            else
+              echo "⏳ Health check attempt $i/10 failed, retrying in 30 seconds..."
+              sleep 30
+            fi
+            if [ $i -eq 10 ]; then
+              echo "❌ Pokemon API Service failed to become healthy"
+              echo "📋 Container logs:"
+              docker logs pokemon-api-service
+              exit 1
+            fi
+          done
       
       - name: Use Node.js
         uses: actions/setup-node@v3
