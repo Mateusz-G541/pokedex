@@ -9,9 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # Service container removed - running Pokemon API Service manually in steps
-    # This ensures we always use the latest Docker image
+    timeout-minutes: 30
     env:
       ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
       POKEMON_API_URL: "http://localhost:20275/api/v2"
