@@ -104,7 +104,7 @@ jobs:
       - name: Check Pokemon API Service status
         run: |
           echo "🔍 Checking Pokemon API Service health..."
-          curl -f http://localhost:20275/api/health
+          curl -f http://localhost:20275/health
           echo "✅ Pokemon API Service is ready!"
 
       # --- BACKEND ---
