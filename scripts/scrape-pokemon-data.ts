@@ -149,7 +149,7 @@ interface SpeciesData {
 
 interface EvolutionChainData {
   id: number;
-  baby_trigger_item: any | null;
+  baby_trigger_item: { name: string; url: string } | null;
   chain: {
     is_baby: boolean;
     species: {
@@ -157,29 +157,29 @@ interface EvolutionChainData {
       url: string;
     };
     evolution_details: Array<{
-      item: any | null;
+      item: { name: string; url: string } | null;
       trigger: {
         name: string;
         url: string;
       };
       gender: number | null;
-      held_item: any | null;
-      known_move: any | null;
-      known_move_type: any | null;
-      location: any | null;
+      held_item: { name: string; url: string } | null;
+      known_move: { name: string; url: string } | null;
+      known_move_type: { name: string; url: string } | null;
+      location: { name: string; url: string } | null;
       min_level: number | null;
       min_happiness: number | null;
       min_beauty: number | null;
       min_affection: number | null;
       needs_overworld_rain: boolean;
-      party_species: any | null;
-      party_type: any | null;
+      party_species: { name: string; url: string } | null;
+      party_type: { name: string; url: string } | null;
       relative_physical_stats: number | null;
       time_of_day: string;
-      trade_species: any | null;
+      trade_species: { name: string; url: string } | null;
       turn_upside_down: boolean;
     }>;
-    evolves_to: Array<any>;
+    evolves_to: Array<EvolutionChainData['chain']>;
   };
 }
 
