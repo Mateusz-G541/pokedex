@@ -224,15 +224,21 @@ export class TestDataFactory {
   }
 
   // Test Data Validation
-  public validatePokemonData(pokemon: any): pokemon is PokemonTestData {
+  public validatePokemonData(pokemon: unknown): pokemon is PokemonTestData {
     return (
       typeof pokemon === 'object' &&
-      typeof pokemon.id === 'number' &&
-      typeof pokemon.name === 'string' &&
-      typeof pokemon.displayName === 'string' &&
-      typeof pokemon.type === 'string' &&
-      typeof pokemon.generation === 'number' &&
-      this.isValidGen1Id(pokemon.id)
+      pokemon !== null &&
+      'id' in pokemon &&
+      'name' in pokemon &&
+      'displayName' in pokemon &&
+      'type' in pokemon &&
+      'generation' in pokemon &&
+      typeof (pokemon as Record<string, unknown>).id === 'number' &&
+      typeof (pokemon as Record<string, unknown>).name === 'string' &&
+      typeof (pokemon as Record<string, unknown>).displayName === 'string' &&
+      typeof (pokemon as Record<string, unknown>).type === 'string' &&
+      typeof (pokemon as Record<string, unknown>).generation === 'number' &&
+      this.isValidGen1Id((pokemon as Record<string, unknown>).id as number)
     );
   }
 

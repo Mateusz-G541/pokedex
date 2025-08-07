@@ -145,7 +145,7 @@ test.describe('Mikr.us Pokemon API Integration', () => {
   const MIKRUS_API_BASE = 'http://srv36.mikr.us:20275/api/v2';
 
   // Helper function to check server connectivity with aggressive timeout
-  async function checkServerConnectivity(request: any): Promise<boolean> {
+  async function checkServerConnectivity(request: import('@playwright/test').APIRequestContext): Promise<boolean> {
     // Always return false in CI to avoid hanging
     if (isCI) {
       console.log('CI environment detected - skipping Mikr.us connectivity check');
@@ -158,13 +158,12 @@ test.describe('Mikr.us Pokemon API Integration', () => {
 
       const response = await request.get(`${MIKRUS_API_BASE}/pokemon/1`, {
         timeout: 3000,
-        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
       return response.ok();
-    } catch (error: any) {
-      console.log('Mikr.us server not accessible:', error.message);
+    } catch (error: unknown) {
+      console.log('Mikr.us server not accessible:', error instanceof Error ? error.message : String(error));
       return false;
     }
   }

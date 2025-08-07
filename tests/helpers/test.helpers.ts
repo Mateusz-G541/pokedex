@@ -79,7 +79,7 @@ export class TestHelpers {
 
 export class TestAssertions {
   static async verifyElementVisible(
-    element: any,
+    element: import('@playwright/test').Locator,
     elementName: string,
     timeout?: number,
   ): Promise<void> {
@@ -89,7 +89,7 @@ export class TestAssertions {
   }
 
   static async verifyElementHidden(
-    element: any,
+    element: import('@playwright/test').Locator,
     elementName: string,
     timeout?: number,
   ): Promise<void> {
@@ -99,7 +99,7 @@ export class TestAssertions {
   }
 
   static async verifyTextContent(
-    element: any,
+    element: import('@playwright/test').Locator,
     expectedText: string | RegExp,
     elementName: string,
   ): Promise<void> {
@@ -110,7 +110,7 @@ export class TestAssertions {
   }
 
   static async verifyElementCount(
-    elements: any,
+    elements: import('@playwright/test').Locator,
     expectedCount: number,
     elementName: string,
   ): Promise<void> {
@@ -119,7 +119,7 @@ export class TestAssertions {
   }
 
   static async verifyMinimumElementCount(
-    elements: any,
+    elements: import('@playwright/test').Locator,
     minCount: number,
     elementName: string,
   ): Promise<void> {

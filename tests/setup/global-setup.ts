@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 
 declare global {
+  // eslint-disable-next-line no-var
   var __SERVER__: ChildProcess;
 }
 
@@ -37,8 +38,8 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
         } else {
           console.log(`⚠️ Server responded with status ${response.status} for ${endpoint}`);
         }
-      } catch (error: any) {
-        console.log(`❌ Failed to connect to ${endpoint}: ${error.message}`);
+      } catch (error: unknown) {
+        console.log(`❌ Failed to connect to ${endpoint}: ${error instanceof Error ? error.message : String(error)}`);
         // Continue to next endpoint
       }
     }
@@ -46,7 +47,7 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
     attempts++;
     if (attempts < maxAttempts) {
       console.log(`Waiting 2 seconds before next attempt...`);
-      await new Promise(resolve => setTimeout(() => resolve(undefined), 2000));
+      await new Promise((resolve) => setTimeout(() => resolve(undefined), 2000));
     }
   }
 
