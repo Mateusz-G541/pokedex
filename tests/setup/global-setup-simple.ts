@@ -39,9 +39,63 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
   return false;
 }
 
+async function waitForPokemonApiService(maxAttempts: number = 15): Promise<boolean> {
+  const pokemonApiUrl = process.env.POKEMON_API_URL || 'http://srv36.mikr.us:20275/api/v2';
+  // Extract base URL and construct health endpoint
+  const baseUrl = pokemonApiUrl.replace('/api/v2', '');
+  const healthUrl = `${baseUrl}/health`;
+
+  console.log(`🔍 Checking Pokemon API service at ${healthUrl}...`);
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`📡 Pokemon API check ${attempt}/${maxAttempts}...`);
+
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      });
+
+      if (response.ok) {
+        console.log(`✅ Pokemon API service is ready!`);
+        return true;
+      } else {
+        console.log(`⚠️ Pokemon API responded with status ${response.status}`);
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log(`❌ Pokemon API connection failed: ${errorMessage}`);
+    }
+
+    if (attempt < maxAttempts) {
+      console.log(`⏳ Waiting 4 seconds before next Pokemon API check...`);
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+    }
+  }
+
+  console.error(`❌ Pokemon API service not available after ${maxAttempts} attempts`);
+  return false;
+}
+
 async function globalSetup() {
   const port = 3000;
-  console.log(`🚀 Starting server on port ${port}...`);
+
+  // First, check if Pokemon API service is available (required dependency)
+  console.log(`🔗 Checking Pokemon API service dependency...`);
+  const isPokemonApiReady = await waitForPokemonApiService();
+
+  if (!isPokemonApiReady) {
+    console.error(
+      '❌ Pokemon API service is not available. This is required for the pokedex service to function.',
+    );
+    console.error(
+      '💡 In CI/CD, ensure the Pokemon API service container is started and healthy before running tests.',
+    );
+    throw new Error('Pokemon API service dependency not available');
+  }
+
+  console.log(`🚀 Starting pokedex server on port ${port}...`);
 
   // Start the server
   const server = spawn('npm', ['run', 'dev'], {
