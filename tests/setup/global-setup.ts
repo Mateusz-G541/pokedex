@@ -1,8 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
-import { setTimeout } from 'timers/promises';
 
 declare global {
-  let __SERVER__: ChildProcess;
+  var __SERVER__: ChildProcess;
 }
 
 async function waitForServer(port: number, maxAttempts: number): Promise<boolean> {
@@ -47,7 +46,7 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
     attempts++;
     if (attempts < maxAttempts) {
       console.log(`Waiting 2 seconds before next attempt...`);
-      await setTimeout(2000);
+      await new Promise(resolve => setTimeout(() => resolve(undefined), 2000));
     }
   }
 

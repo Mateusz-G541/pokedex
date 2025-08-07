@@ -20,7 +20,7 @@ import {
   GEN1_CONSTANTS,
 } from '../pokemon/generation1.data';
 import { UIData, ValidationRules, ErrorMessages, EnvironmentConfig } from '../ui/interface.data';
-import { TestScenarios, APITestData, TestGenerators } from '../scenarios/test-scenarios.data';
+import { TestScenariosData, APITestScenarios, TestGenerators } from '../scenarios/test-scenarios.data';
 
 /**
  * Main Test Data Factory
@@ -113,36 +113,36 @@ export class TestDataFactory {
 
   // Test Scenarios
   public getTestScenarios() {
-    return TestScenarios;
+    return TestScenariosData;
   }
 
   public getSearchScenarios() {
-    return TestScenarios.search;
+    return TestScenariosData.search;
   }
 
   public getTeamScenarios() {
-    return TestScenarios.team;
+    return TestScenariosData.team;
   }
 
   public getRandomTestConfig() {
-    return TestScenarios.random;
+    return TestScenariosData.random;
   }
 
   // API Test Data
   public getAPIData() {
-    return APITestData;
+    return APITestScenarios;
   }
 
   public getAPIEndpoints() {
-    return APITestData.endpoints;
+    return APITestScenarios.endpoints;
   }
 
   public getValidIds() {
-    return APITestData.validIds;
+    return APITestScenarios.validIds;
   }
 
   public getInvalidIds() {
-    return APITestData.invalidIds;
+    return APITestScenarios.invalidIds;
   }
 
   // Environment Configuration
@@ -216,11 +216,11 @@ export class TestDataFactory {
   }
 
   public isLegendaryId(id: number): boolean {
-    return GEN1_CONSTANTS.LEGENDARY_IDS.includes(id);
+    return GEN1_CONSTANTS.LEGENDARY_IDS.includes(id as any);
   }
 
   public isStarterId(id: number): boolean {
-    return GEN1_CONSTANTS.STARTER_IDS.includes(id);
+    return GEN1_CONSTANTS.STARTER_IDS.includes(id as any);
   }
 
   // Test Data Validation
@@ -289,4 +289,4 @@ export const CITestData = TestDataFactory.getInstance('ci', 'e2e');
 export const UnitTestData = TestDataFactory.getInstance('local', 'unit');
 export const IntegrationTestData = TestDataFactory.getInstance('local', 'integration');
 export const E2ETestData = TestDataFactory.getInstance('local', 'e2e');
-export const APITestData = TestDataFactory.getInstance('local', 'api');
+export const APITestFactory = TestDataFactory.getInstance('local', 'api');

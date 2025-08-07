@@ -38,10 +38,10 @@ test.describe('Pokemon Search Functionality', () => {
 
   test('should handle invalid Pokemon search gracefully', async ({ page: _page }) => {
     // Arrange - Use invalid search term
-    const invalidPokemon = TestData.search.invalid;
+    const invalidQuery = TestData.search.invalid.query;
 
     // Act - Search for invalid Pokemon
-    await pokemonApp.searchForPokemon(invalidPokemon);
+    await pokemonApp.searchForInvalidPokemon(invalidQuery);
 
     // Assert - Verify error handling
     await pokemonApp.verifyErrorDisplayed();
@@ -53,7 +53,7 @@ test.describe('Pokemon Search Functionality', () => {
     const suggestionData = TestData.search.suggestions;
 
     // Act - Type partial Pokemon name
-    await pokemonApp.typeInSearchInput(suggestionData.partialName);
+    await pokemonApp.typeInSearchInput(suggestionData.validQuery);
 
     // Assert - Verify suggestions appear
     await pokemonApp.verifySuggestionsDisplayed();

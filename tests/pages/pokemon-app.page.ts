@@ -80,6 +80,12 @@ export class PokemonAppPage {
     await this.waitForSearchResults();
   }
 
+  async searchForInvalidPokemon(query: string): Promise<void> {
+    await this.searchInput.fill(query);
+    await this.searchButton.click();
+    await this.waitForSearchResults();
+  }
+
   async waitForSearchResults(): Promise<void> {
     // Wait for loading to disappear
     await this.loadingSpinner.waitFor({

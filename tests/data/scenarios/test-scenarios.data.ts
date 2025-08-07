@@ -7,7 +7,7 @@
 import { TestScenarios, APITestData } from '../types/test-data.types';
 import { Generation1Pokemon, GEN1_CONSTANTS } from '../pokemon/generation1.data';
 
-export const TestScenarios: TestScenarios = {
+export const TestScenariosData: TestScenarios = {
   search: {
     valid: [
       {
@@ -120,7 +120,7 @@ export const TestScenarios: TestScenarios = {
   },
 };
 
-export const APITestData: APITestData = {
+export const APITestScenarios: APITestData = {
   endpoints: {
     pokemon: '/api/pokemon',
     pokemonById: (id: number) => `/api/pokemon/${id}`,
@@ -228,7 +228,7 @@ export const PerformanceTestData = {
   stressTestScenarios: [
     {
       name: 'Heavy search load',
-      requests: TestScenarios.search.valid.map((s) => s.query),
+      requests: TestScenariosData.search.valid.map((s) => s.query),
       expectedMaxResponseTime: 3000,
     },
     {
