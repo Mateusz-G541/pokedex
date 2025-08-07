@@ -12,7 +12,7 @@ async function waitForServer(port: number, maxAttempts: number = 30): Promise<bo
     try {
       console.log(`📡 Attempt ${attempt}/${maxAttempts}: Checking server...`);
 
-      const response = await fetch(`http://localhost:${port}/api/health`, {
+      const response = await fetch(`http://0.0.0.0:${port}/api/health`, {
         method: 'GET',
         headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(3000), // 3 second timeout
