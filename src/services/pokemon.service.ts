@@ -29,6 +29,41 @@ export class PokemonService {
     console.log(`🔗 Pokemon API configured to use: ${this.customApiUrl}`);
   }
 
+  // Helper method to make requests with retry logic for better reliability
+  private async makeRequestWithRetry<T>(
+    requestFn: () => Promise<T>,
+    endpoint: string,
+    maxRetries: number = 3,
+  ): Promise<T> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📡 Attempting request to ${endpoint} (attempt ${attempt}/${maxRetries})`);
+        const result = await requestFn();
+        console.log(`✅ Request to ${endpoint} succeeded`);
+        return result;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        console.warn(
+          `⚠️ Request to ${endpoint} failed (attempt ${attempt}/${maxRetries}): ${lastError.message}`,
+        );
+
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+          console.log(`⏳ Retrying in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    console.error(`❌ All ${maxRetries} attempts failed for ${endpoint}`);
+    throw (
+      lastError ||
+      new Error(`Failed to complete request to ${endpoint} after ${maxRetries} attempts`)
+    );
+  }
+
   // Helper method to validate Pokemon ID is within Generation 1 (1-151)
   private isValidPokemonId(id: number): boolean {
     return id >= 1 && id <= 151;
@@ -40,28 +75,39 @@ export class PokemonService {
   }
 
   async getPokemonByTypeAndRegion(type: string, region: string): Promise<Pokemon[]> {
-    const regionData = this.getRegionData(region);
+    try {
+      const regionData = this.getRegionData(region);
 
-    // Get type data from custom API
-    const typeResponse = await axios.get(`${this.customApiUrl}/type/${type}`, this.axiosConfig);
-    const pokemonList = typeResponse.data.pokemon
-      .map((p: { pokemon: { url: string } }) => p.pokemon.url)
-      .filter((url: string) => {
-        const id = parseInt(url.split('/').slice(-2, -1)[0]);
-        return id >= regionData.pokemonRange.start && id <= regionData.pokemonRange.end;
-      });
+      // Get type data from custom API with retry logic
+      const typeResponse = await this.makeRequestWithRetry(
+        () => axios.get(`${this.customApiUrl}/type/${type}`, this.axiosConfig),
+        `type/${type}`,
+      );
 
-    // Get Pokemon details from custom API
-    const pokemonDetails = await Promise.all(
-      pokemonList.map((url: string) => {
-        const id = url.split('/').slice(-2, -1)[0];
-        return axios
-          .get(`${this.customApiUrl}/pokemon/${id}`, this.axiosConfig)
-          .then((res) => res.data);
-      }),
-    );
+      const pokemonList = typeResponse.data.pokemon
+        .map((p: { pokemon: { url: string } }) => p.pokemon.url)
+        .filter((url: string) => {
+          const id = parseInt(url.split('/').slice(-2, -1)[0]);
+          return id >= regionData.pokemonRange.start && id <= regionData.pokemonRange.end;
+        });
 
-    return pokemonDetails;
+      // Get Pokemon details from custom API with retry logic
+      const pokemonDetails = await Promise.all(
+        pokemonList.map(async (url: string) => {
+          const id = url.split('/').slice(-2, -1)[0];
+          const response = await this.makeRequestWithRetry(
+            () => axios.get(`${this.customApiUrl}/pokemon/${id}`, this.axiosConfig),
+            `pokemon/${id}`,
+          );
+          return response.data;
+        }),
+      );
+
+      return pokemonDetails;
+    } catch (error) {
+      console.error(`Error fetching Pokemon by type ${type} and region ${region}:`, error);
+      throw new Error(`Failed to fetch Pokemon data. Pokemon API service may be unavailable.`);
+    }
   }
 
   async getPokemonByName(name: string): Promise<Pokemon> {

@@ -31,7 +31,7 @@ jobs:
             --name pokemon-api-service \
             -p 20275:20275 \
             -e NODE_ENV=production \
-            -e ALLOWED_ORIGINS="https://pokedex-87cl.vercel.app,https://another-allowed-domain.com" \
+            -e ALLOWED_ORIGINS="https://pokedex-87cl.vercel.app,https://another-allowed-domain.com,http://localhost:3000,http://127.0.0.1:3000" \
             quavaghar2/pokemon-api-service:latest
           
           # Wait for container to initialize (5 minutes for data loading)
