@@ -39,7 +39,9 @@ async function waitForServer(port: number, maxAttempts: number): Promise<boolean
           console.log(`⚠️ Server responded with status ${response.status} for ${endpoint}`);
         }
       } catch (error: unknown) {
-        console.log(`❌ Failed to connect to ${endpoint}: ${error instanceof Error ? error.message : String(error)}`);
+        console.log(
+          `❌ Failed to connect to ${endpoint}: ${error instanceof Error ? error.message : String(error)}`,
+        );
         // Continue to next endpoint
       }
     }
@@ -93,7 +95,7 @@ async function globalSetup() {
   console.log('Server is ready!');
 
   // Store server process for cleanup
-  (global as any).__SERVER__ = server;
+  globalThis.__SERVER__ = server;
 }
 
 export default globalSetup;

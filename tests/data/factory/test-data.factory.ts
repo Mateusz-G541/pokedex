@@ -20,7 +20,11 @@ import {
   GEN1_CONSTANTS,
 } from '../pokemon/generation1.data';
 import { UIData, ValidationRules, ErrorMessages, EnvironmentConfig } from '../ui/interface.data';
-import { TestScenariosData, APITestScenarios, TestGenerators } from '../scenarios/test-scenarios.data';
+import {
+  TestScenariosData,
+  APITestScenarios,
+  TestGenerators,
+} from '../scenarios/test-scenarios.data';
 
 /**
  * Main Test Data Factory
@@ -216,11 +220,13 @@ export class TestDataFactory {
   }
 
   public isLegendaryId(id: number): boolean {
-    return GEN1_CONSTANTS.LEGENDARY_IDS.includes(id as any);
+    return GEN1_CONSTANTS.LEGENDARY_IDS.includes(
+      id as (typeof GEN1_CONSTANTS.LEGENDARY_IDS)[number],
+    );
   }
 
   public isStarterId(id: number): boolean {
-    return GEN1_CONSTANTS.STARTER_IDS.includes(id as any);
+    return GEN1_CONSTANTS.STARTER_IDS.includes(id as (typeof GEN1_CONSTANTS.STARTER_IDS)[number]);
   }
 
   // Test Data Validation
