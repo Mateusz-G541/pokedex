@@ -50,12 +50,26 @@ app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // Health check endpoint
+console.log('🏥 Setting up health check endpoint...');
 app.get('/api/health', (req: express.Request, res: express.Response) => {
+  console.log('🟢 Health check endpoint called');
+  console.log(`📍 Request from: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`🌐 Request headers:`, JSON.stringify(req.headers, null, 2));
+  console.log(`🔗 Request URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
+  console.log(`💻 Server listening on: ${host}:${port}`);
   res.status(200).json({ status: 'ok' });
 });
+console.log('✅ Health check endpoint configured');
 
 // Routes
-app.use('/api', pokemonRoutes);
+console.log('🛣️ Loading Pokemon routes...');
+try {
+  app.use('/api', pokemonRoutes);
+  console.log('✅ Pokemon routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading Pokemon routes:', error);
+  throw error;
+}
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
