@@ -64,9 +64,30 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
   res.status(500).json({ error: errorMessage });
 });
 
-// Start server
-app.listen(port, host, () => {
+// Graceful error handling for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Start server with error handling
+const server = app.listen(port, host, () => {
   console.log(
     `Server is running in ${process.env.NODE_ENV || 'development'} mode on ${host}:${port}`,
   );
+  console.log(`🏥 Health check available at: http://${host}:${port}/api/health`);
+});
+
+// Handle server startup errors
+server.on('error', (error: NodeJS.ErrnoException) => {
+  console.error('❌ Server startup error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${port} is already in use`);
+  }
+  process.exit(1);
 });

@@ -3,12 +3,28 @@ import { Pokemon, EvolutionChain, PokemonComparison, Region } from '../types/pok
 
 export class PokemonService {
   private readonly customApiUrl: string;
+  private readonly axiosConfig: {
+    timeout: number;
+    headers: {
+      Accept: string;
+      'Content-Type': string;
+    };
+  };
 
   constructor() {
     // Use environment variable for API URL, with fallback to remote service
     // CI/CD will set POKEMON_API_URL to local service
     // Production uses remote service for reliability
     this.customApiUrl = process.env.POKEMON_API_URL || 'http://srv36.mikr.us:20275/api/v2';
+
+    // Configure axios with timeout to prevent hanging
+    this.axiosConfig = {
+      timeout: 10000, // 10 second timeout
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    };
 
     console.log(`🔗 Pokemon API configured to use: ${this.customApiUrl}`);
   }
@@ -27,7 +43,7 @@ export class PokemonService {
     const regionData = this.getRegionData(region);
 
     // Get type data from custom API
-    const typeResponse = await axios.get(`${this.customApiUrl}/type/${type}`);
+    const typeResponse = await axios.get(`${this.customApiUrl}/type/${type}`, this.axiosConfig);
     const pokemonList = typeResponse.data.pokemon
       .map((p: { pokemon: { url: string } }) => p.pokemon.url)
       .filter((url: string) => {
@@ -39,7 +55,9 @@ export class PokemonService {
     const pokemonDetails = await Promise.all(
       pokemonList.map((url: string) => {
         const id = url.split('/').slice(-2, -1)[0];
-        return axios.get(`${this.customApiUrl}/pokemon/${id}`).then((res) => res.data);
+        return axios
+          .get(`${this.customApiUrl}/pokemon/${id}`, this.axiosConfig)
+          .then((res) => res.data);
       }),
     );
 
@@ -47,7 +65,10 @@ export class PokemonService {
   }
 
   async getPokemonByName(name: string): Promise<Pokemon> {
-    const response = await axios.get(`${this.customApiUrl}/pokemon/${name.toLowerCase()}`);
+    const response = await axios.get(
+      `${this.customApiUrl}/pokemon/${name.toLowerCase()}`,
+      this.axiosConfig,
+    );
     const pokemon = response.data;
 
     // Validate that Pokemon ID is within Generation 1 (1-151)
@@ -62,10 +83,14 @@ export class PokemonService {
 
   async getPokemonEvolution(name: string): Promise<EvolutionChain> {
     const pokemon = await this.getPokemonByName(name);
-    const speciesResponse = await axios.get(`${this.customApiUrl}/pokemon-species/${pokemon.id}`);
+    const speciesResponse = await axios.get(
+      `${this.customApiUrl}/pokemon-species/${pokemon.id}`,
+      this.axiosConfig,
+    );
     const evolutionChainId = speciesResponse.data.evolution_chain.url.split('/').slice(-2, -1)[0];
     const evolutionChainResponse = await axios.get(
       `${this.customApiUrl}/evolution-chain/${evolutionChainId}`,
+      this.axiosConfig,
     );
     return evolutionChainResponse.data.chain;
   }
@@ -89,7 +114,7 @@ export class PokemonService {
   }
 
   async getAllTypes(): Promise<string[]> {
-    const response = await axios.get(`${this.customApiUrl}/type`);
+    const response = await axios.get(`${this.customApiUrl}/type`, this.axiosConfig);
     return response.data.results.map((type: { name: string }) => type.name);
   }
 
@@ -118,7 +143,7 @@ export class PokemonService {
     const randomIndex = Math.floor(Math.random() * legendaryIds.length);
     const randomId = legendaryIds[randomIndex];
 
-    const response = await axios.get(`${this.customApiUrl}/pokemon/${randomId}`);
+    const response = await axios.get(`${this.customApiUrl}/pokemon/${randomId}`, this.axiosConfig);
     return response.data;
   }
 
@@ -127,7 +152,10 @@ export class PokemonService {
       console.log('Fetching Pokemon suggestions for query:', query);
 
       // Use custom Pokemon API service for suggestions (local JSON data)
-      const response = await axios.get(`${this.customApiUrl}/pokemon/suggestions?query=${query}`);
+      const response = await axios.get(
+        `${this.customApiUrl}/pokemon/suggestions?query=${query}`,
+        this.axiosConfig,
+      );
 
       if (!response.data || !Array.isArray(response.data)) {
         console.warn('Invalid response format from custom Pokemon API for suggestions');
