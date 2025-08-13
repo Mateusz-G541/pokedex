@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 import { typeColors } from '../../constants/typeColors';
 
 interface StarterPokemonProps {
@@ -14,7 +15,7 @@ const StarterPokemon: React.FC<StarterPokemonProps> = ({ pokemon, index, onViewD
   return (
     <div className="starter-pokemon" data-testid={`starter-pokemon-${index}`}>
       <img
-        src={pokemon.sprites.front_default}
+        src={getProxiedImageUrl(pokemon.sprites.front_default)}
         alt={pokemon.name}
         data-testid={`starter-pokemon-${index}-image`}
       />

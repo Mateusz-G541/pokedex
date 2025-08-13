@@ -6,6 +6,7 @@ import { PokedexExplorer } from './components/Pokedex';
 import { TeamView } from './components/Team';
 import { FavoritesView } from './components/Favorites';
 import { BattleView } from './components/Battle';
+import { getProxiedImageUrl } from './utils/imageProxy';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
@@ -734,7 +735,7 @@ function App() {
         result.push({
           name: chain.species.name,
           id: parseInt(speciesId),
-          image: pokemonResponse.data.sprites.front_default,
+          image: getProxiedImageUrl(pokemonResponse.data.sprites.front_default),
         });
 
         // Recursively process the next evolution stage if it exists
@@ -932,7 +933,8 @@ function App() {
         {evolutionChain.map((evolution, index) => (
           <div key={evolution.id} className="evolution-stage">
             <div className="evolution-pokemon">
-              <img src={evolution.image} alt={evolution.name} />
+              <img src={getProxiedImageUrl(evolution.image)} alt={evolution.name} />
+
               <p>{evolution.name}</p>
               <span className="evolution-id">#{evolution.id}</span>
             </div>
@@ -1852,7 +1854,8 @@ function App() {
               className="pokemon-card-small"
               onClick={() => viewPokemonDetails(pokemon)}
             >
-              <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+              <img src={getProxiedImageUrl(pokemon.sprites.front_default)} alt={pokemon.name} />
+
               <p>{pokemon.name}</p>
               <div className="pokemon-types-small">
                 {pokemon.types.map((type) => (
