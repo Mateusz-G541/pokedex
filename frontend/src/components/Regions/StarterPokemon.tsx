@@ -15,7 +15,7 @@ const StarterPokemon: React.FC<StarterPokemonProps> = ({ pokemon, index, onViewD
   return (
     <div className="starter-pokemon" data-testid={`starter-pokemon-${index}`}>
       <img
-        src={getProxiedImageUrl(pokemon.sprites.front_default)}
+        src={getProxiedImageUrl(`/images/pokemon/${pokemon.id}.png`)}
         alt={pokemon.name}
         data-testid={`starter-pokemon-${index}-image`}
       />
