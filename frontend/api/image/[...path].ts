@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Backend image origin (no trailing slash)
 const BACKEND_BASE = process.env.BACKEND_IMAGE_ORIGIN || 'http://srv36.mikr.us:20275';
 
@@ -15,7 +14,7 @@ type ImageApiResponse = {
 
 export default async function handler(req: ImageApiRequest, res: ImageApiResponse) {
   try {
-    const pathParam = (req.query.path as string[] | string | undefined);
+    const pathParam = req.query.path as string[] | string | undefined;
 
     if (!pathParam) {
       res.status(400).send('Missing image path');

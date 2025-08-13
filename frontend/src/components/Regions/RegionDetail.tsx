@@ -3,6 +3,7 @@ import type { Region } from './types';
 import StarterPokemon from './StarterPokemon';
 import GymLeader from './GymLeader';
 import type { Pokemon } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface RegionDetailProps {
   region: Region;
@@ -32,7 +33,7 @@ const RegionDetail: React.FC<RegionDetailProps> = ({
           {region.thumbnailPokemon ? (
             <div className="region-starter-showcase" data-testid="region-starter-showcase">
               <img
-                src={region.thumbnailPokemon.sprites.front_default}
+                src={getProxiedImageUrl(region.thumbnailPokemon.sprites.front_default)}
                 alt={`${region.name} starter Pokémon`}
                 className="region-detail-image"
                 data-testid="region-detail-image"
