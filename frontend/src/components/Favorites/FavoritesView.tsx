@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface FavoritesViewProps {
   favorites: Pokemon[];
@@ -34,7 +35,7 @@ const FavoritesView: React.FC<FavoritesViewProps> = ({
               {favorites.map((favoritePokemon) => (
                 <div key={favoritePokemon.id} className="favorite-pokemon">
                   <img
-                    src={favoritePokemon.sprites.front_default}
+                    src={getProxiedImageUrl(favoritePokemon.sprites.front_default)}
                     alt={favoritePokemon.name}
                     onClick={() => onViewPokemonDetails(favoritePokemon)}
                     className="clickable-pokemon"

@@ -2,6 +2,7 @@ import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
 import { typeColors } from '../../constants/typeColors';
 import type { EvolutionData } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface PokemonCardProps {
   pokemon: Pokemon;
@@ -31,7 +32,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
   return (
     <div className="pokemon-card" data-testid="pokemon-card">
       <div className="pokemon-image" data-testid="pokemon-image-container">
-        <img src={pokemon.sprites.front_default} alt={pokemon.name} data-testid="pokemon-image" />
+        <img src={getProxiedImageUrl(pokemon.sprites.front_default)} alt={pokemon.name} data-testid="pokemon-image" />
       </div>
       <h2 data-testid="pokemon-name">{pokemon.name}</h2>
       <div className="pokemon-types" data-testid="pokemon-types">

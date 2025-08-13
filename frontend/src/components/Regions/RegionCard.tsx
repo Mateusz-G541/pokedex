@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Region } from './types';
 // import { typeColors } from '../../constants/typeColors';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface RegionCardProps {
   region: Region;
@@ -19,7 +20,7 @@ const RegionCard: React.FC<RegionCardProps> = ({ region, index, onSelectRegion }
       {region.thumbnailPokemon ? (
         <div className="region-image-container" data-testid={`region-image-container-${index}`}>
           <img
-            src={region.thumbnailPokemon.sprites.front_default}
+            src={getProxiedImageUrl(region.thumbnailPokemon.sprites.front_default)}
             alt={region.thumbnailPokemon.name}
             className="region-image pokemon-image"
             data-testid={`region-thumbnail-image-${index}`}

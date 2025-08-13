@@ -1,5 +1,6 @@
 import React from 'react';
 import type { EvolutionData } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface EvolutionChainProps {
   evolutionChain: EvolutionData[];
@@ -29,7 +30,7 @@ const EvolutionChain: React.FC<EvolutionChainProps> = ({ evolutionChain, loading
         >
           <div className="evolution-pokemon" data-testid={`evolution-pokemon-${index}`}>
             <img
-              src={evolution.image}
+              src={getProxiedImageUrl(evolution.image)}
               alt={evolution.name}
               data-testid={`evolution-image-${index}`}
             />

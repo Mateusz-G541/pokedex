@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
 import type { TypeAnalysis, PokemonRecommendation } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface TeamViewProps {
   team: Pokemon[];
@@ -43,7 +44,7 @@ const TeamView: React.FC<TeamViewProps> = ({
               {team.map((teamPokemon) => (
                 <div key={teamPokemon.id} className="team-pokemon">
                   <img
-                    src={teamPokemon.sprites.front_default}
+                    src={getProxiedImageUrl(teamPokemon.sprites.front_default)}
                     alt={teamPokemon.name}
                     onClick={() => onViewPokemonDetails(teamPokemon)}
                     className="clickable-pokemon"

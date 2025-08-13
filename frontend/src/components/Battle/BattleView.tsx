@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Pokemon } from '../../types/pokemon';
+import { getProxiedImageUrl } from '../../utils/imageProxy';
 
 interface BattleState {
   playerTeam: Pokemon[];
@@ -73,7 +74,7 @@ const BattleView: React.FC<BattleViewProps> = ({
             <div className="opponent-area">
               <div className="pokemon-battle">
                 <img
-                  src={battleState.currentOpponentPokemon.sprites.front_default}
+                  src={getProxiedImageUrl(battleState.currentOpponentPokemon.sprites.front_default)}
                   alt={battleState.currentOpponentPokemon.name}
                 />
                 <div className="battle-info">
@@ -123,7 +124,7 @@ const BattleView: React.FC<BattleViewProps> = ({
                   className={`player-pokemon ${pokemon.id === battleState.currentPlayerPokemon?.id ? 'active' : ''} ${battleState.turn === 'selection' ? 'selectable' : ''}`}
                   onClick={() => battleState.turn === 'selection' && switchPokemon(pokemon)}
                 >
-                  <img src={pokemon.sprites.front_default} alt={pokemon.name} />
+                  <img src={getProxiedImageUrl(pokemon.sprites.front_default)} alt={pokemon.name} />
                   <p>{pokemon.name}</p>
                   {pokemon.id === battleState.currentPlayerPokemon?.id && (
                     <div className="hp-bar">
