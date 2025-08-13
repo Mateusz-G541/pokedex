@@ -36,7 +36,7 @@ jobs:
           
           # Wait for container to initialize (5 minutes for data loading)
           echo "⏳ Waiting for Pokemon API Service to initialize (5 minutes)..."
-          sleep 300
+          sleep 120
           
           # Test health endpoint with retries
           echo "🔍 Testing health endpoint..."
