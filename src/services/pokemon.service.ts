@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
 import { Pokemon, EvolutionChain, PokemonComparison, Region } from '../types/pokemon';
 
 export class PokemonService {
@@ -111,20 +111,40 @@ export class PokemonService {
   }
 
   async getPokemonByName(name: string): Promise<Pokemon> {
-    const response = await axios.get(
-      `${this.customApiUrl}/pokemon/${name.toLowerCase()}`,
-      this.axiosConfig,
-    );
-    const pokemon = response.data;
+    const lower = name.toLowerCase();
 
-    // Validate that Pokemon ID is within Generation 1 (1-151)
-    if (!this.isValidPokemonId(pokemon.id)) {
-      throw new Error(
-        `Pokemon ${name} (ID: ${pokemon.id}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
-      );
+    try {
+      // First try custom API by name
+      const byName = await axios.get(`${this.customApiUrl}/pokemon/${lower}`, this.axiosConfig);
+      const pokemon: Pokemon = byName.data;
+
+      if (!this.isValidPokemonId(pokemon.id)) {
+        throw new Error(
+          `Pokemon ${name} (ID: ${pokemon.id}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
+        );
+      }
+      return pokemon;
+    } catch (error: unknown) {
+      // If name lookup not supported on custom API, resolve name -> id via official API, then fetch by id from custom API
+      const status = (error as AxiosError)?.response?.status as number | undefined;
+      if (status !== 404) {
+        // Not a simple not-found; rethrow original error
+        throw error instanceof Error ? error : new Error('Failed to fetch Pokemon by name');
+      }
+
+      // Resolve to ID using official API as a lightweight directory
+      const official = await axios.get(`https://pokeapi.co/api/v2/pokemon/${lower}`, { timeout: 3000 });
+      const resolvedId: number = official.data.id;
+
+      if (!this.isValidPokemonId(resolvedId)) {
+        throw new Error(
+          `Pokemon ${name} (ID: ${resolvedId}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
+        );
+      }
+
+      const byId = await axios.get(`${this.customApiUrl}/pokemon/${resolvedId}`, this.axiosConfig);
+      return byId.data as Pokemon;
     }
-
-    return pokemon;
   }
 
   async getPokemonEvolution(name: string): Promise<EvolutionChain> {
