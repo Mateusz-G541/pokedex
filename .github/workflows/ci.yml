@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
-      POKEMON_API_URL: "http://localhost:20275/api/v2"
+      ALLOWED_ORIGINS: 'https://pokedex-87cl.vercel.app,https://another-allowed-domain.com'
+      POKEMON_API_URL: 'http://localhost:20275/api/v2'
     steps:
       - uses: actions/checkout@v3
 
@@ -20,11 +20,11 @@ jobs:
       - name: Start Pokemon API Service
         run: |
           echo "🚀 Starting Pokemon API Service..."
-          
+
           # Pull latest image
           echo "🔄 Pulling latest image..."
           docker pull quavaghar2/pokemon-api-service:latest
-          
+
           # Start container in background
           echo "📦 Starting container..."
           docker run -d \
@@ -33,11 +33,11 @@ jobs:
             -e NODE_ENV=production \
             -e ALLOWED_ORIGINS="https://pokedex-87cl.vercel.app,https://another-allowed-domain.com,http://localhost:3000,http://127.0.0.1:3000" \
             quavaghar2/pokemon-api-service:latest
-          
+
           # Wait for container to initialize (5 minutes for data loading)
           echo "⏳ Waiting for Pokemon API Service to initialize (5 minutes)..."
           sleep 120
-          
+
           # Test health endpoint with retries
           echo "🔍 Testing health endpoint..."
           for i in {1..10}; do
@@ -55,7 +55,7 @@ jobs:
               exit 1
             fi
           done
-      
+
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
@@ -66,14 +66,14 @@ jobs:
       - name: Debug Pokemon API Service
         run: |
           echo "🔍 Debugging Pokemon API Service..."
-          
+
           # Check if container is running
           docker ps -a
-          
+
           # Get container ID for pokemon-api-service
           CONTAINER_ID=$(docker ps -q --filter ancestor=quavaghar2/pokemon-api-service:latest)
           echo "Container ID: $CONTAINER_ID"
-          
+
           # Show container logs
           if [ ! -z "$CONTAINER_ID" ]; then
             echo "📋 Container logs:"
@@ -124,7 +124,7 @@ jobs:
 
       - name: Test backend
         env:
-          POKEMON_API_URL: "http://localhost:20275/api/v2"
+          POKEMON_API_URL: 'http://localhost:20275/api/v2'
           NODE_ENV: test
         run: npm run test:api
 
@@ -146,7 +146,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      ALLOWED_ORIGINS: "https://pokedex-87cl.vercel.app,https://another-allowed-domain.com"
+      ALLOWED_ORIGINS: 'https://pokedex-87cl.vercel.app,https://another-allowed-domain.com'
     steps:
       - uses: actions/checkout@v3
 

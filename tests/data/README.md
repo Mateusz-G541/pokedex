@@ -5,6 +5,7 @@
 Your test data organization has been completely restructured for better maintainability, type safety, and scalability.
 
 ### **Before (Issues):**
+
 - ❌ Scattered test data across multiple files
 - ❌ Inconsistent naming conventions
 - ❌ Mixed concerns (UI + Pokemon data together)
@@ -13,6 +14,7 @@ Your test data organization has been completely restructured for better maintain
 - ❌ No centralized validation rules
 
 ### **After (Improvements):**
+
 - ✅ **Centralized Factory Pattern** - Single entry point for all test data
 - ✅ **Type-Safe Structure** - Full TypeScript interfaces for all data
 - ✅ **Separated Concerns** - Pokemon, UI, API, and scenario data in separate modules
@@ -41,6 +43,7 @@ tests/data/
 ## 🚀 **How to Use the New System**
 
 ### **Option 1: Factory Pattern (Recommended)**
+
 ```typescript
 import { TestDataFactory } from '../data/factory/test-data.factory';
 
@@ -63,6 +66,7 @@ const teamTests = testData.getTeamScenarios();
 ```
 
 ### **Option 2: Direct Imports**
+
 ```typescript
 import { Generation1Pokemon, GEN1_CONSTANTS } from '../data/pokemon/generation1.data';
 import { UIData, ValidationRules } from '../data/ui/interface.data';
@@ -74,6 +78,7 @@ const isValidId = (id: number) => id >= GEN1_CONSTANTS.MIN_ID && id <= GEN1_CONS
 ```
 
 ### **Option 3: Legacy Compatibility**
+
 ```typescript
 import { TestData } from '../data/pokemon.test-data';
 
@@ -85,19 +90,21 @@ const selectors = TestData.ui.selectors;
 ## 🎮 **Key Features for Pokemon Testing**
 
 ### **Generation 1 Validation**
+
 ```typescript
 const testData = TestDataFactory.getInstance();
 
 // Validate Generation 1 constraints
-testData.isValidGen1Id(25);     // true (Pikachu)
-testData.isValidGen1Id(152);    // false (Gen 2)
-testData.isLegendaryId(150);    // true (Mewtwo)
+testData.isValidGen1Id(25); // true (Pikachu)
+testData.isValidGen1Id(152); // false (Gen 2)
+testData.isLegendaryId(150); // true (Mewtwo)
 
 // Get Gen 1 constants
 const { MIN_ID, MAX_ID, LEGENDARY_IDS } = testData.getGen1Constants();
 ```
 
 ### **Random Pokemon Testing**
+
 ```typescript
 // Get random Pokemon for testing randomness
 const randomPokemon = testData.getRandomPokemon();
@@ -108,6 +115,7 @@ const randomTests = testData.generateRandomTests(5);
 ```
 
 ### **Team Management Testing**
+
 ```typescript
 const teamData = testData.getTeamTestData();
 const teamScenarios = testData.getTeamScenarios();
@@ -119,18 +127,21 @@ const fullTeam = teamData.fullTeamScenario; // 7 Pokemon to test limits
 ## 🔧 **Environment-Specific Configuration**
 
 ### **Local Development**
+
 ```typescript
 const localData = TestDataFactory.getInstance('local', 'e2e');
 // Uses standard timeouts, localhost URLs
 ```
 
 ### **CI Environment**
+
 ```typescript
 const ciData = TestDataFactory.getInstance('ci', 'e2e');
 // Uses longer timeouts, handles CI-specific issues
 ```
 
 ### **Different Test Types**
+
 ```typescript
 const unitData = TestDataFactory.getInstance('local', 'unit');
 const apiData = TestDataFactory.getInstance('local', 'api');
@@ -140,24 +151,28 @@ const e2eData = TestDataFactory.getInstance('local', 'e2e');
 ## 📊 **Test Data Categories**
 
 ### **1. Pokemon Data**
+
 - **Generation 1 Pokemon** with full metadata
 - **Starters, Legendaries, Popular Pokemon**
 - **Evolution chains and type information**
 - **Sprite URLs and display names**
 
 ### **2. UI Test Data**
+
 - **Selectors** with fallback strategies
 - **Timeouts** that adjust for environment
 - **Viewport configurations**
 - **Error messages and validation rules**
 
 ### **3. Test Scenarios**
+
 - **Search scenarios** (valid, invalid, edge cases)
 - **Random Pokemon scenarios** with Gen 1 validation
 - **Team management scenarios** (add, remove, duplicates, limits)
 - **API integration scenarios**
 
 ### **4. Validation Rules**
+
 - **Generation 1 constraints** (IDs 1-151)
 - **Pokemon name validation**
 - **Search query validation**
@@ -166,6 +181,7 @@ const e2eData = TestDataFactory.getInstance('local', 'e2e');
 ## 🧪 **Migration Examples**
 
 ### **Before:**
+
 ```typescript
 // Old scattered approach
 const pikachu = { id: 25, name: 'pikachu', type: 'electric' };
@@ -174,6 +190,7 @@ const searchInput = '[data-testid="search-input"]';
 ```
 
 ### **After:**
+
 ```typescript
 // New centralized approach
 const testData = TestDataFactory.getInstance();

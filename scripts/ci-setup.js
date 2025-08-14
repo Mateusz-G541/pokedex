@@ -2,14 +2,14 @@
 
 /**
  * CI/CD Setup Script
- * 
+ *
  * This script automates the entire test setup process:
  * 1. Install dependencies
  * 2. Start backend server with health checks
  * 3. Start frontend (optional)
  * 4. Verify services are running with curl
  * 5. Run tests
- * 
+ *
  * Usage:
  *   node scripts/ci-setup.js [--frontend] [--tests-only]
  */
@@ -23,7 +23,7 @@ const CONFIG = {
   BACKEND_PORT: process.env.PORT || 3000,
   FRONTEND_PORT: process.env.FRONTEND_PORT || 3001,
   HEALTH_CHECK_TIMEOUT: 60000, // 60 seconds
-  HEALTH_CHECK_INTERVAL: 2000,  // 2 seconds
+  HEALTH_CHECK_INTERVAL: 2000, // 2 seconds
   MAX_RETRIES: 30,
 };
 
@@ -63,7 +63,7 @@ function logWarning(message) {
 function runCommand(command, options = {}) {
   return new Promise((resolve, reject) => {
     log(`Running: ${command}`, colors.cyan);
-    
+
     const child = spawn(command, [], {
       shell: true,
       stdio: options.silent ? 'pipe' : 'inherit',
@@ -107,7 +107,7 @@ function runCommand(command, options = {}) {
 // Health check function
 async function healthCheck(url, maxRetries = CONFIG.MAX_RETRIES) {
   log(`Checking health: ${url}`, colors.cyan);
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await fetch(url);
@@ -118,11 +118,11 @@ async function healthCheck(url, maxRetries = CONFIG.MAX_RETRIES) {
     } catch (error) {
       // Service not ready yet
     }
-    
+
     log(`Attempt ${i + 1}/${maxRetries} - waiting...`, colors.yellow);
-    await new Promise(resolve => setTimeout(resolve, CONFIG.HEALTH_CHECK_INTERVAL));
+    await new Promise((resolve) => setTimeout(resolve, CONFIG.HEALTH_CHECK_INTERVAL));
   }
-  
+
   logError(`Health check failed after ${maxRetries} attempts: ${url}`);
   return false;
 }
@@ -132,7 +132,10 @@ async function killPort(port) {
   try {
     if (process.platform === 'win32') {
       await runCommand(`netstat -ano | findstr :${port}`, { silent: true });
-      await runCommand(`for /f "tokens=5" %a in ('netstat -ano ^| findstr :${port}') do taskkill /F /PID %a`, { silent: true });
+      await runCommand(
+        `for /f "tokens=5" %a in ('netstat -ano ^| findstr :${port}') do taskkill /F /PID %a`,
+        { silent: true },
+      );
     } else {
       await runCommand(`lsof -ti:${port} | xargs kill -9`, { silent: true });
     }
@@ -148,12 +151,12 @@ async function setupAndRun() {
   const args = process.argv.slice(2);
   const includeFrontend = args.includes('--frontend');
   const testsOnly = args.includes('--tests-only');
-  
+
   log('🎮 Pokemon App CI/CD Setup Script', colors.bright + colors.magenta);
   log('=====================================', colors.magenta);
-  
+
   const processes = [];
-  
+
   try {
     if (!testsOnly) {
       // Step 1: Install dependencies
@@ -171,7 +174,7 @@ async function setupAndRun() {
       // Step 3: Start backend server
       logStep(3, 'Starting backend server');
       log(`Starting backend on port ${CONFIG.BACKEND_PORT}...`, colors.cyan);
-      
+
       const backendProcess = spawn('npm', ['run', 'dev'], {
         stdio: 'pipe',
         shell: true,
@@ -196,8 +199,10 @@ async function setupAndRun() {
 
       // Step 4: Wait for backend to be ready
       logStep(4, 'Waiting for backend to be ready');
-      const backendHealthy = await healthCheck(`http://localhost:${CONFIG.BACKEND_PORT}/api/pokemon/types`);
-      
+      const backendHealthy = await healthCheck(
+        `http://localhost:${CONFIG.BACKEND_PORT}/api/pokemon/types`,
+      );
+
       if (!backendHealthy) {
         throw new Error('Backend failed to start');
       }
@@ -205,7 +210,10 @@ async function setupAndRun() {
       // Step 5: Verify backend with curl
       logStep(5, 'Verifying backend with curl');
       try {
-        const curlResult = await runCommand(`curl -f http://localhost:${CONFIG.BACKEND_PORT}/api/pokemon/1`, { silent: true });
+        const curlResult = await runCommand(
+          `curl -f http://localhost:${CONFIG.BACKEND_PORT}/api/pokemon/1`,
+          { silent: true },
+        );
         logSuccess('Backend API is responding correctly');
         log('Sample response received', colors.green);
       } catch (error) {
@@ -216,7 +224,7 @@ async function setupAndRun() {
       if (includeFrontend) {
         logStep(6, 'Starting frontend');
         log(`Starting frontend on port ${CONFIG.FRONTEND_PORT}...`, colors.cyan);
-        
+
         const frontendProcess = spawn('npm', ['run', 'dev'], {
           stdio: 'pipe',
           shell: true,
@@ -240,7 +248,7 @@ async function setupAndRun() {
 
         // Wait for frontend to be ready
         const frontendHealthy = await healthCheck(`http://localhost:${CONFIG.FRONTEND_PORT}`);
-        
+
         if (!frontendHealthy) {
           logWarning('Frontend health check failed, but continuing...');
         }
@@ -248,27 +256,26 @@ async function setupAndRun() {
     }
 
     // Step 7: Run tests
-    const testStep = testsOnly ? 1 : (includeFrontend ? 7 : 6);
+    const testStep = testsOnly ? 1 : includeFrontend ? 7 : 6;
     logStep(testStep, 'Running Playwright tests');
-    
+
     // Set environment variable to skip auto-start since we already started the server
     process.env.PLAYWRIGHT_AUTO_START_SERVER = 'false';
-    
+
     await runCommand('npm run test');
     logSuccess('All tests completed successfully!');
-
   } catch (error) {
     logError(`Setup failed: ${error.message}`);
     process.exit(1);
   } finally {
     // Cleanup: Kill all spawned processes
     log('\n🧹 Cleaning up processes...', colors.yellow);
-    
+
     for (const { name, process } of processes) {
       if (process && !process.killed) {
         log(`Killing ${name} process...`, colors.yellow);
         process.kill('SIGTERM');
-        
+
         // Force kill after 5 seconds if still running
         setTimeout(() => {
           if (!process.killed) {
@@ -277,7 +284,7 @@ async function setupAndRun() {
         }, 5000);
       }
     }
-    
+
     logSuccess('Cleanup completed');
   }
 }
