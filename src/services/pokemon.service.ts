@@ -133,10 +133,7 @@ export class PokemonService {
       }
 
       // Resolve to ID using official API as a lightweight directory
-      const official = await axios.get(
-        `https://pokeapi.co/api/v2/pokemon/${lower}`,
-        { timeout: 3000 },
-      );
+      const official = await axios.get(`https://pokeapi.co/api/v2/pokemon/${lower}`, { timeout: 3000 });
       const resolvedId: number = official.data.id;
 
       if (!this.isValidPokemonId(resolvedId)) {
