@@ -136,6 +136,7 @@ jobs:
         env:
           POKEMON_API_URL: 'http://localhost:20275/api/v2'
           NODE_ENV: test
+          SKIP_FRONTEND: 'true'
         run: npm run test:api
 
       # --- FRONTEND ---

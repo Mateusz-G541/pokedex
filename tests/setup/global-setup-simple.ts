@@ -111,7 +111,8 @@ async function waitForFrontend(port: number, maxAttempts: number = 30): Promise<
     try {
       console.log(`📡 Attempt ${attempt}/${maxAttempts}: Checking frontend...`);
 
-      const response = await fetch(`http://localhost:${port}`, {
+      // Use 127.0.0.1 instead of localhost to avoid IPv6/host mapping differences in CI
+      const response = await fetch(`http://127.0.0.1:${port}`, {
         method: 'GET',
         headers: { Accept: 'text/html' },
         signal: AbortSignal.timeout(3000), // 3 second timeout
@@ -141,6 +142,7 @@ async function waitForFrontend(port: number, maxAttempts: number = 30): Promise<
 async function globalSetup() {
   const backendPort = 3000;
   const frontendPort = 5173;
+  const skipFrontend = (process.env.SKIP_FRONTEND || '').toLowerCase() === 'true';
 
   // Check if Pokemon API service is available, but don't fail if it's not
   console.log(`🔗 Checking Pokemon API service dependency...`);
@@ -203,6 +205,13 @@ async function globalSetup() {
   }
 
   console.log('🎉 Backend is ready for tests!');
+
+  if (skipFrontend) {
+    console.log('⏭️  SKIP_FRONTEND=true — skipping starting the frontend for API-only tests.');
+    // Store only backend process for cleanup and return
+    globalThis.__SERVER__ = server;
+    return;
+  }
 
   // Start the frontend server
   console.log(`🚀 Starting frontend server on port ${frontendPort}...`);
