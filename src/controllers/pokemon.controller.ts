@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PokemonService } from '../services/pokemon.service';
+import { PokemonService, HttpError } from '../services/pokemon.service';
 
 export class PokemonController {
   private pokemonService: PokemonService;
@@ -32,11 +32,16 @@ export class PokemonController {
       const pokemon = await this.pokemonService.getPokemonByName(name);
       res.json(pokemon);
     } catch (error) {
+      // Quiet 404s (expected in tests), log others
+      if (error instanceof HttpError && error.status === 404) {
+        res.status(404).json({
+          error: 'Pokemon not found',
+          details: error.message,
+        });
+        return;
+      }
       console.error('Error fetching Pokemon:', error);
-      res.status(404).json({
-        error: 'Pokemon not found',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      });
+      res.status(500).json({ error: 'Failed to fetch Pokemon' });
     }
   }
 

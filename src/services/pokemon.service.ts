@@ -1,6 +1,16 @@
 import axios, { type AxiosError } from 'axios';
 import { Pokemon, EvolutionChain, PokemonComparison, Region } from '../types/pokemon';
 
+// Lightweight HTTP error to propagate status codes to controllers without noisy stacks
+export class HttpError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = 'HttpError';
+  }
+}
+
 export class PokemonService {
   private readonly customApiUrl: string;
   private readonly axiosConfig: {
@@ -119,7 +129,8 @@ export class PokemonService {
       const pokemon: Pokemon = byName.data;
 
       if (!this.isValidPokemonId(pokemon.id)) {
-        throw new Error(
+        throw new HttpError(
+          404,
           `Pokemon ${name} (ID: ${pokemon.id}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
         );
       }
@@ -133,19 +144,34 @@ export class PokemonService {
       }
 
       // Resolve to ID using official API as a lightweight directory
-      const official = await axios.get(`https://pokeapi.co/api/v2/pokemon/${lower}`, {
-        timeout: 3000,
-      });
-      const resolvedId: number = official.data.id;
+      try {
+        const official = await axios.get(`https://pokeapi.co/api/v2/pokemon/${lower}`, {
+          timeout: 3000,
+        });
+        const resolvedId: number = official.data.id;
 
-      if (!this.isValidPokemonId(resolvedId)) {
-        throw new Error(
-          `Pokemon ${name} (ID: ${resolvedId}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
+        if (!this.isValidPokemonId(resolvedId)) {
+          throw new HttpError(
+            404,
+            `Pokemon ${name} (ID: ${resolvedId}) is not available. Only Generation 1 Pokemon (IDs 1-151) are supported.`,
+          );
+        }
+
+        const byId = await axios.get(
+          `${this.customApiUrl}/pokemon/${resolvedId}`,
+          this.axiosConfig,
         );
+        return byId.data as Pokemon;
+      } catch (resolveErr: unknown) {
+        const resolveStatus = (resolveErr as AxiosError)?.response?.status as number | undefined;
+        if (resolveStatus === 404) {
+          // Clean not-found error for controller to map to 404 without noisy stack
+          throw new HttpError(404, `Pokemon ${name} not found`);
+        }
+        throw resolveErr instanceof Error
+          ? resolveErr
+          : new Error('Failed to resolve Pokemon name');
       }
-
-      const byId = await axios.get(`${this.customApiUrl}/pokemon/${resolvedId}`, this.axiosConfig);
-      return byId.data as Pokemon;
     }
   }
 
