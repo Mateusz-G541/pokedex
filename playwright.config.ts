@@ -1,9 +1,13 @@
 import { defineConfig } from '@playwright/test';
 
-// Get the base URL from environment or use default
-const baseURL = process.env.CI
+// Get the base URLs from environment or use defaults
+const apiBaseURL = process.env.CI
   ? 'http://127.0.0.1:3000' // Use IP instead of localhost in CI
   : 'http://localhost:3000'; // Use localhost in local development
+
+const frontendBaseURL = process.env.CI
+  ? 'http://127.0.0.1:5173' // Use IP instead of localhost in CI
+  : 'http://localhost:5173'; // Frontend Vite server port
 
 export default defineConfig({
   testDir: './tests',
@@ -16,7 +20,7 @@ export default defineConfig({
   globalSetup: './tests/setup/global-setup-simple.ts',
   globalTeardown: './tests/setup/global-teardown.ts',
   use: {
-    baseURL,
+    baseURL: apiBaseURL,
     trace: 'on-first-retry',
     actionTimeout: 30000,
     navigationTimeout: 30000,
@@ -35,7 +39,7 @@ export default defineConfig({
       testMatch: '**/*.spec.ts',
       timeout: 60000,
       use: {
-        baseURL,
+        baseURL: frontendBaseURL,
         trace: 'on-first-retry',
         actionTimeout: 30000,
         navigationTimeout: 30000,

@@ -5,6 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_deploy:
+        description: 'Run deploy job after build-and-test'
+        required: false
+        default: 'true'
+      notes:
+        description: 'Run manually'
+        required: false
+        default: ''
 
 jobs:
   build-and-test:

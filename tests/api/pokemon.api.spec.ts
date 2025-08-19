@@ -247,6 +247,11 @@ test.describe('Mikr.us Pokemon API Integration', () => {
     expect(data.chain).toBeDefined();
     expect(data.chain.species).toBeDefined();
     expect(data.chain.species.name).toBe('bulbasaur');
+
+    // Be tolerant to upstream URL host (can be PokeAPI or Mikr.us), but path must be correct
+    expect(data.evolution_chain).toBeDefined();
+    const evoUrl: string = data.evolution_chain.url;
+    expect(evoUrl).toContain('/evolution-chain/');
   });
 
   test('GET /type/:name from Mikr.us API returns type data', async ({ request }) => {
