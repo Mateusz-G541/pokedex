@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import pokemonRoutes from './routes/pokemon.routes';
+import pkg from '../package.json';
 
 // Load environnmp ment variables based on NODE_ENV
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
@@ -60,6 +61,17 @@ app.get('/api/health', (req: express.Request, res: express.Response) => {
   res.status(200).json({ status: 'ok' });
 });
 console.log('✅ Health check endpoint configured');
+
+// Version endpoint
+type PackageInfo = { name: string; version: string };
+const { name: serviceName, version: serviceVersion } = pkg as PackageInfo;
+app.get('/api/version', (_req: express.Request, res: express.Response) => {
+  res.status(200).json({
+    name: serviceName,
+    version: serviceVersion,
+    env: process.env.NODE_ENV || 'development',
+  });
+});
 
 // Routes
 console.log('🛣️ Loading Pokemon routes...');
