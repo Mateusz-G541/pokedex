@@ -140,9 +140,10 @@ async function waitForFrontend(port: number, maxAttempts: number = 30): Promise<
 }
 
 async function globalSetup() {
-  const backendPort = 3000;
-  const frontendPort = 5173;
+  const backendPort = Number(process.env.BACKEND_PORT || 3000);
+  const frontendPort = Number(process.env.FRONTEND_PORT || 5173);
   const skipFrontend = (process.env.SKIP_FRONTEND || '').toLowerCase() === 'true';
+  const skipBackend = (process.env.SKIP_BACKEND || '').toLowerCase() === 'true';
 
   // Check if Pokemon API service is available, but don't fail if it's not
   console.log(`🔗 Checking Pokemon API service dependency...`);
@@ -159,111 +160,141 @@ async function globalSetup() {
     console.log(`✅ Pokemon API service is ready!`);
   }
 
-  // Start the backend server
-  console.log(`🚀 Starting pokedex backend server on port ${backendPort}...`);
-  const server = spawn('npm', ['run', 'dev'], {
-    stdio: 'pipe',
-    shell: true,
-    env: {
-      ...process.env,
-      PORT: backendPort.toString(),
-      NODE_ENV: 'development', // Use development mode for tests
-      HOST: '0.0.0.0',
-    },
-  });
-
-  // Log server output for debugging
-  server.stdout?.on('data', (data) => {
-    const output = data.toString().trim();
-    if (output) {
-      console.log(`📝 Backend: ${output}`);
+  // Optionally skip starting backend if requested or already running
+  if (skipBackend) {
+    console.log(`⏭️  SKIP_BACKEND=true — will not start backend.`);
+    console.log(`🔍 Verifying backend health on port ${backendPort}...`);
+    const healthy = await waitForServer(backendPort, 3);
+    if (!healthy) {
+      throw new Error(
+        `SKIP_BACKEND is set but backend is not healthy at http://0.0.0.0:${backendPort}/api/health. Start it manually or unset SKIP_BACKEND.`,
+      );
     }
-  });
-
-  server.stderr?.on('data', (data) => {
-    const output = data.toString().trim();
-    if (output) {
-      console.error(`⚠️ Backend Error: ${output}`);
-    }
-  });
-
-  server.on('error', (error) => {
-    console.error(`❌ Failed to start backend: ${error.message}`);
-  });
-
-  // Give server time to fully initialize
-  console.log('⏳ Waiting for backend to fully initialize...');
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
-
-  // Wait for backend server to be ready
-  const isServerReady = await waitForServer(backendPort);
-
-  if (!isServerReady) {
-    console.error('❌ Backend failed to start. Killing process...');
-    server.kill('SIGTERM');
-    throw new Error('Backend failed to start within the timeout period');
   }
 
-  console.log('🎉 Backend is ready for tests!');
+  // Start the backend server only if not skipped and not already healthy
+  let server: ChildProcess | undefined;
+  if (!skipBackend) {
+    console.log(`🔍 Checking if backend is already running on port ${backendPort}...`);
+    const alreadyHealthy = await waitForServer(backendPort, 1);
+    if (alreadyHealthy) {
+      console.log('✅ Backend already running — will not spawn a duplicate process.');
+    } else {
+      console.log(`🚀 Starting pokedex backend server on port ${backendPort}...`);
+      server = spawn('npm', ['run', 'dev'], {
+        stdio: 'pipe',
+        shell: true,
+        env: {
+          ...process.env,
+          PORT: backendPort.toString(),
+          NODE_ENV: 'development', // Use development mode for tests
+          HOST: '0.0.0.0',
+        },
+      });
+
+      // Log server output for debugging
+      server.stdout?.on('data', (data) => {
+        const output = data.toString().trim();
+        if (output) {
+          console.log(`📝 Backend: ${output}`);
+        }
+      });
+
+      server.stderr?.on('data', (data) => {
+        const output = data.toString().trim();
+        if (output) {
+          console.error(`⚠️ Backend Error: ${output}`);
+        }
+      });
+
+      server.on('error', (error) => {
+        console.error(`❌ Failed to start backend: ${error.message}`);
+      });
+
+      // Give server time to fully initialize
+      console.log('⏳ Waiting for backend to fully initialize...');
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
+
+      // Wait for backend server to be ready
+      const isServerReady = await waitForServer(backendPort);
+
+      if (!isServerReady) {
+        console.error('❌ Backend failed to start. Killing process...');
+        server.kill('SIGTERM');
+        throw new Error('Backend failed to start within the timeout period');
+      }
+
+      console.log('🎉 Backend is ready for tests!');
+    }
+  }
 
   if (skipFrontend) {
     console.log('⏭️  SKIP_FRONTEND=true — skipping starting the frontend for API-only tests.');
     // Store only backend process for cleanup and return
-    globalThis.__SERVER__ = server;
+    if (server) {
+      globalThis.__SERVER__ = server;
+    }
     return;
   }
 
-  // Start the frontend server
-  console.log(`🚀 Starting frontend server on port ${frontendPort}...`);
-  const frontend = spawn('npm', ['run', 'dev'], {
-    stdio: 'pipe',
-    shell: true,
-    cwd: './frontend',
-    env: {
-      ...process.env,
-      PORT: frontendPort.toString(),
-      NODE_ENV: 'development',
-    },
-  });
+  // Start the frontend server (with auto-detect) unless skipped
+  let frontend: ChildProcess | undefined;
+  console.log(`🔍 Checking if frontend is already running on port ${frontendPort}...`);
+  const frontendAlreadyHealthy = await waitForFrontend(frontendPort, 1);
+  if (frontendAlreadyHealthy) {
+    console.log('✅ Frontend already running — will not spawn a duplicate process.');
+  } else {
+    console.log(`🚀 Starting frontend server on port ${frontendPort}...`);
+    frontend = spawn('npm', ['run', 'dev'], {
+      stdio: 'pipe',
+      shell: true,
+      cwd: './frontend',
+      env: {
+        ...process.env,
+        PORT: frontendPort.toString(),
+        NODE_ENV: 'development',
+      },
+    });
 
-  // Log frontend output for debugging
-  frontend.stdout?.on('data', (data) => {
-    const output = data.toString().trim();
-    if (output) {
-      console.log(`📝 Frontend: ${output}`);
+    // Log frontend output for debugging
+    frontend.stdout?.on('data', (data) => {
+      const output = data.toString().trim();
+      if (output) {
+        console.log(`📝 Frontend: ${output}`);
+      }
+    });
+
+    frontend.stderr?.on('data', (data) => {
+      const output = data.toString().trim();
+      if (output) {
+        console.error(`⚠️ Frontend Error: ${output}`);
+      }
+    });
+
+    frontend.on('error', (error) => {
+      console.error(`❌ Failed to start frontend: ${error.message}`);
+    });
+
+    // Give frontend time to fully initialize
+    console.log('⏳ Waiting for frontend to fully initialize...');
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
+
+    // Wait for frontend to be ready
+    const isFrontendReady = await waitForFrontend(frontendPort);
+
+    if (!isFrontendReady) {
+      console.error('❌ Frontend failed to start. Killing processes...');
+      if (server) server.kill('SIGTERM');
+      if (frontend) frontend.kill('SIGTERM');
+      throw new Error('Frontend failed to start within the timeout period');
     }
-  });
-
-  frontend.stderr?.on('data', (data) => {
-    const output = data.toString().trim();
-    if (output) {
-      console.error(`⚠️ Frontend Error: ${output}`);
-    }
-  });
-
-  frontend.on('error', (error) => {
-    console.error(`❌ Failed to start frontend: ${error.message}`);
-  });
-
-  // Give frontend time to fully initialize
-  console.log('⏳ Waiting for frontend to fully initialize...');
-  await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
-
-  // Wait for frontend to be ready
-  const isFrontendReady = await waitForFrontend(frontendPort);
-
-  if (!isFrontendReady) {
-    console.error('❌ Frontend failed to start. Killing processes...');
-    server.kill('SIGTERM');
-    frontend.kill('SIGTERM');
-    throw new Error('Frontend failed to start within the timeout period');
   }
 
   console.log('🎉 Frontend is ready for tests!');
 
-  // Store processes for cleanup
-  globalThis.__SERVER__ = server;
-  globalThis.__FRONTEND__ = frontend;
+  // Store processes for cleanup (only if we spawned them)
+  if (server) globalThis.__SERVER__ = server;
+  if (frontend) globalThis.__FRONTEND__ = frontend;
 }
 
 export default globalSetup;
