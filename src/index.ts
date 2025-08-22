@@ -115,7 +115,7 @@ const swaggerDefinition = {
 } as const;
 
 const swaggerSpec = swaggerJsdoc({
-  definition: swaggerDefinition as unknown as Record<string, unknown>,
+  definition: swaggerDefinition,
   apis: [],
 });
 
