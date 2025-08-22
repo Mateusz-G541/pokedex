@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
 import pokemonRoutes from './routes/pokemon.routes';
 import pkg from '../package.json';
 
@@ -53,6 +55,72 @@ app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 // Service metadata (for health/version responses)
 type PackageInfo = { name: string; version: string };
 const { name: serviceName, version: serviceVersion } = pkg as PackageInfo;
+
+// Swagger/OpenAPI setup
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: `${serviceName} API`,
+    version: serviceVersion,
+    description: 'Pokédex REST API documentation',
+  },
+  servers: [{ url: `http://${host}:${port}`, description: 'Current server' }],
+  paths: {
+    '/api/health': {
+      get: {
+        summary: 'Health check',
+        responses: {
+          '200': {
+            description: 'Service is healthy',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'ok' },
+                    message: { type: 'string' },
+                    name: { type: 'string' },
+                    version: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/version': {
+      get: {
+        summary: 'Service version',
+        responses: {
+          '200': {
+            description: 'Version info',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    version: { type: 'string' },
+                    env: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+const swaggerSpec = swaggerJsdoc({
+  definition: swaggerDefinition as unknown as Record<string, unknown>,
+  apis: [],
+});
+
+app.get('/api-docs.json', (_req, res) => res.json(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check endpoint
 console.log('🏥 Setting up health check endpoint...');
