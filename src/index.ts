@@ -50,6 +50,10 @@ app.use(express.json());
 // Serve static images
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
+// Service metadata (for health/version responses)
+type PackageInfo = { name: string; version: string };
+const { name: serviceName, version: serviceVersion } = pkg as PackageInfo;
+
 // Health check endpoint
 console.log('🏥 Setting up health check endpoint...');
 app.get('/api/health', (req: express.Request, res: express.Response) => {
@@ -58,13 +62,16 @@ app.get('/api/health', (req: express.Request, res: express.Response) => {
   console.log(`🌐 Request headers:`, JSON.stringify(req.headers, null, 2));
   console.log(`🔗 Request URL: ${req.protocol}://${req.get('host')}${req.originalUrl}`);
   console.log(`💻 Server listening on: ${host}:${port}`);
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({
+    status: 'ok',
+    message: `${serviceName} v${serviceVersion}`,
+    name: serviceName,
+    version: serviceVersion,
+  });
 });
 console.log('✅ Health check endpoint configured');
 
 // Version endpoint
-type PackageInfo = { name: string; version: string };
-const { name: serviceName, version: serviceVersion } = pkg as PackageInfo;
 app.get('/api/version', (_req: express.Request, res: express.Response) => {
   res.status(200).json({
     name: serviceName,
