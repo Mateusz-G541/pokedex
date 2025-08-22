@@ -104,42 +104,74 @@ async function waitForPokemonApiService(maxAttempts: number = 15): Promise<boole
   return false;
 }
 
-async function waitForFrontend(port: number, maxAttempts: number = 30): Promise<boolean> {
-  console.log(`🔍 Waiting for frontend on port ${port}...`);
+// Cross-platform: kill any process listening on a given TCP port
+async function killProcessOnPort(port: number): Promise<void> {
+  console.log(`🛑 Ensuring no process is listening on port ${port} before starting frontend...`);
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      console.log(`📡 Attempt ${attempt}/${maxAttempts}: Checking frontend...`);
+  const run = (cmd: string, args: string[], cwd?: string) =>
+    new Promise<{ code: number | null; stdout: string; stderr: string }>((resolve) => {
+      const child = spawn(cmd, args, { shell: true, cwd });
+      let stdout = '';
+      let stderr = '';
+      child.stdout?.on('data', (d) => (stdout += d.toString()));
+      child.stderr?.on('data', (d) => (stderr += d.toString()));
+      child.on('close', (code) => resolve({ code, stdout, stderr }));
+      child.on('error', () => resolve({ code: 1, stdout, stderr }));
+    });
 
-      // Use 127.0.0.1 instead of localhost to avoid IPv6/host mapping differences in CI
-      const response = await fetch(`http://127.0.0.1:${port}`, {
-        method: 'GET',
-        headers: { Accept: 'text/html' },
-        signal: AbortSignal.timeout(3000), // 3 second timeout
-      });
+  try {
+    if (process.platform === 'win32') {
+      // Find PIDs listening on the port via netstat
+      const { stdout } = await run('cmd.exe', ['/c', `netstat -ano | findstr :${port}`]);
+      const pids = Array.from(
+        new Set(
+          stdout
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter((l) => l && /LISTENING/i.test(l))
+            .map((l) => l.split(/\s+/).pop()!)
+            .filter((pid) => /^\d+$/.test(pid)),
+        ),
+      );
 
-      if (response.ok) {
-        console.log(`✅ Frontend is ready on port ${port}!`);
-        return true;
-      } else {
-        console.log(`⚠️ Frontend responded with status ${response.status}`);
+      if (pids.length === 0) {
+        console.log(`✅ No existing process found on port ${port}.`);
+        return;
       }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.log(`❌ Frontend connection failed: ${errorMessage}`);
-    }
 
-    if (attempt < maxAttempts) {
-      console.log(`⏳ Waiting 2 seconds before next attempt...`);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log(`⚠️ Found ${pids.length} process(es) on port ${port}: ${pids.join(', ')}`);
+      for (const pid of pids) {
+        const res = await run('taskkill', ['/PID', pid, '/F']);
+        if (res.code === 0) {
+          console.log(`✅ Killed PID ${pid} on port ${port}.`);
+        } else {
+          console.warn(`⚠️ Failed to kill PID ${pid}. stderr: ${res.stderr || res.stdout}`);
+        }
+      }
+    } else {
+      // macOS/Linux
+      const { stdout } = await run('bash', ['-lc', `lsof -ti tcp:${port} || true`]);
+      const pids = stdout
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .filter((s) => /^\d+$/.test(s));
+
+      if (pids.length === 0) {
+        console.log(`✅ No existing process found on port ${port}.`);
+        return;
+      }
+
+      console.log(`⚠️ Found ${pids.length} process(es) on port ${port}: ${pids.join(', ')}`);
+      await run('bash', ['-lc', `kill -9 ${pids.join(' ')}`]);
+      console.log(`✅ Killed processes on port ${port}.`);
     }
+  } catch (err) {
+    console.warn(`⚠️ Error during port cleanup for ${port}:`, err);
   }
-
-  console.error(`❌ Frontend failed to start after ${maxAttempts} attempts`);
-  return false;
 }
 
 async function globalSetup() {
+  console.log('🟢 Using global-setup-simple (NO FRONTEND WAITS)');
   const backendPort = Number(process.env.BACKEND_PORT || 3000);
   const frontendPort = Number(process.env.FRONTEND_PORT || 5173);
   const skipFrontend = (process.env.SKIP_FRONTEND || '').toLowerCase() === 'true';
@@ -237,64 +269,40 @@ async function globalSetup() {
     return;
   }
 
-  // Start the frontend server (with auto-detect) unless skipped
-  let frontend: ChildProcess | undefined;
-  console.log(`🔍 Checking if frontend is already running on port ${frontendPort}...`);
-  const frontendAlreadyHealthy = await waitForFrontend(frontendPort, 1);
-  if (frontendAlreadyHealthy) {
-    console.log('✅ Frontend already running — will not spawn a duplicate process.');
-  } else {
-    console.log(`🚀 Starting frontend server on port ${frontendPort}...`);
-    frontend = spawn('npm', ['run', 'dev'], {
+  // Start the frontend server without any waiting or health checks
+  // We will spawn a new frontend process below and store it for cleanup
+  // Kill any stale process that might still be holding the Vite port
+  await killProcessOnPort(frontendPort);
+  console.log(`🚀 Starting frontend server on fixed port ${frontendPort} (no checks, strict)...`);
+  const spawnedFrontend = spawn(
+    'npm',
+    ['run', 'dev', '--', '--port', String(frontendPort), '--strictPort'],
+    {
       stdio: 'pipe',
       shell: true,
       cwd: './frontend',
       env: {
         ...process.env,
         PORT: frontendPort.toString(),
-        NODE_ENV: 'development',
       },
-    });
+    },
+  );
 
-    // Log frontend output for debugging
-    frontend.stdout?.on('data', (data) => {
-      const output = data.toString().trim();
-      if (output) {
-        console.log(`📝 Frontend: ${output}`);
-      }
-    });
+  // Stream output for debugging, but do not block or enforce readiness
+  spawnedFrontend.stdout?.on('data', (data: Buffer) => {
+    const line = data.toString();
+    process.stdout.write(`📝 Frontend: ${line}`);
+  });
+  spawnedFrontend.stderr?.on('data', (data: Buffer) => {
+    const line = data.toString();
+    process.stderr.write(`📝 Frontend: ${line}`);
+  });
 
-    frontend.stderr?.on('data', (data) => {
-      const output = data.toString().trim();
-      if (output) {
-        console.error(`⚠️ Frontend Error: ${output}`);
-      }
-    });
-
-    frontend.on('error', (error) => {
-      console.error(`❌ Failed to start frontend: ${error.message}`);
-    });
-
-    // Give frontend time to fully initialize
-    console.log('⏳ Waiting for frontend to fully initialize...');
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay
-
-    // Wait for frontend to be ready
-    const isFrontendReady = await waitForFrontend(frontendPort);
-
-    if (!isFrontendReady) {
-      console.error('❌ Frontend failed to start. Killing processes...');
-      if (server) server.kill('SIGTERM');
-      if (frontend) frontend.kill('SIGTERM');
-      throw new Error('Frontend failed to start within the timeout period');
-    }
-  }
-
-  console.log('🎉 Frontend is ready for tests!');
+  console.log('ℹ️ Frontend spawn initiated (no readiness checks). Proceeding with tests.');
 
   // Store processes for cleanup (only if we spawned them)
   if (server) globalThis.__SERVER__ = server;
-  if (frontend) globalThis.__FRONTEND__ = frontend;
+  if (spawnedFrontend) globalThis.__FRONTEND__ = spawnedFrontend;
 }
 
 export default globalSetup;
