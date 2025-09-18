@@ -10,6 +10,7 @@ import { getProxiedImageUrl } from './utils/imageProxy';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
+const AUTO_LOGIN = import.meta.env.VITE_AUTO_LOGIN === 'true';
 
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
@@ -407,6 +408,15 @@ function App() {
   const [evolutionChain, setEvolutionChain] = useState<EvolutionData[]>([]);
   const [loadingEvolution, setLoadingEvolution] = useState(false);
 
+  // --- Authentication (static) ---
+  const [authToken, setAuthToken] = useState<string | null>(
+    () => localStorage.getItem('authToken')
+  );
+  const [authUser, setAuthUser] = useState<string | null>(() => localStorage.getItem('authUser'));
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   // Add new state variables for team analysis and recommendations
   const [teamAnalysis, setTeamAnalysis] = useState<TypeAnalysis>({
     strongAgainst: [],
@@ -578,6 +588,44 @@ function App() {
         console.error('Error parsing saved team:', e);
       }
     }
+  }, []);
+
+  // Persist auth info
+  useEffect(() => {
+    if (authToken) {
+      localStorage.setItem('authToken', authToken);
+    } else {
+      localStorage.removeItem('authToken');
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    if (authUser) {
+      localStorage.setItem('authUser', authUser);
+    } else {
+      localStorage.removeItem('authUser');
+    }
+  }, [authUser]);
+
+  // Optional auto-login for CI/E2E convenience
+  useEffect(() => {
+    const doAutoLogin = async () => {
+      if (AUTO_LOGIN && !authToken) {
+        try {
+          const response = await axios.post(`${API_URL}/api/login`, {
+            username: 'test',
+            password: 'test',
+          });
+          const { token, user } = response.data;
+          setAuthToken(token);
+          setAuthUser(user?.username || 'test');
+        } catch (e) {
+          console.warn('Auto-login failed:', e);
+        }
+      }
+    };
+    void doAutoLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save favorites to localStorage when it changes
@@ -813,6 +861,32 @@ function App() {
     setSearchTerm(suggestion);
     setShowSuggestions(false);
     fetchPokemon(suggestion);
+  };
+
+  // --- Auth handlers ---
+  const handleLogin = async () => {
+    try {
+      setLoginError('');
+      const response = await axios.post(`${API_URL}/api/login`, {
+        username: loginUsername,
+        password: loginPassword,
+      });
+      const { token, user } = response.data;
+      setAuthToken(token);
+      setAuthUser(user?.username || loginUsername);
+      setLoginUsername('');
+      setLoginPassword('');
+    } catch (err: unknown) {
+      console.error('Login failed:', err);
+      setLoginError('Invalid credentials');
+      setAuthToken(null);
+      setAuthUser(null);
+    }
+  };
+
+  const handleLogout = () => {
+    setAuthToken(null);
+    setAuthUser(null);
   };
 
   const addToTeam = () => {
@@ -1975,37 +2049,47 @@ function App() {
     <div className="container">
       <h1>Pokédex</h1>
 
+      {/* Login status/header (ProtectedRoute ensures we are authenticated) */}
+      <div className="login-status" data-testid="login-status">
+        <span>
+          Logged in as <strong data-testid="logged-in-user">{authUser}</strong>
+        </span>
+        <button data-testid="logout-button" onClick={handleLogout} style={{ marginLeft: 12 }}>
+          Logout
+        </button>
+      </div>
+
       <div className="tabs">
-        <button
-          className={`tab ${activeTab === TABS.POKEDEX ? 'active' : ''}`}
-          onClick={() => setActiveTab(TABS.POKEDEX)}
-        >
-          Pokédex
-        </button>
-        <button
-          className={`tab ${activeTab === TABS.TEAM ? 'active' : ''}`}
-          onClick={() => setActiveTab(TABS.TEAM)}
-        >
-          Team ({team.length})
-        </button>
-        <button
-          className={`tab ${activeTab === TABS.FAVORITES ? 'active' : ''}`}
-          onClick={() => setActiveTab(TABS.FAVORITES)}
-        >
-          Favorites ({favorites.length})
-        </button>
-        <button
-          className={`tab ${activeTab === TABS.BATTLE ? 'active' : ''}`}
-          onClick={() => setActiveTab(TABS.BATTLE)}
-        >
-          Battle
-        </button>
-        <button
-          className={`tab ${activeTab === TABS.REGIONS ? 'active' : ''}`}
-          onClick={() => setActiveTab(TABS.REGIONS)}
-        >
-          Regions
-        </button>
+          <button
+            className={`tab ${activeTab === TABS.POKEDEX ? 'active' : ''}`}
+            onClick={() => setActiveTab(TABS.POKEDEX)}
+          >
+            Pokédex
+          </button>
+          <button
+            className={`tab ${activeTab === TABS.TEAM ? 'active' : ''}`}
+            onClick={() => setActiveTab(TABS.TEAM)}
+          >
+            Team ({team.length})
+          </button>
+          <button
+            className={`tab ${activeTab === TABS.FAVORITES ? 'active' : ''}`}
+            onClick={() => setActiveTab(TABS.FAVORITES)}
+          >
+            Favorites ({favorites.length})
+          </button>
+          <button
+            className={`tab ${activeTab === TABS.BATTLE ? 'active' : ''}`}
+            onClick={() => setActiveTab(TABS.BATTLE)}
+          >
+            Battle
+          </button>
+          <button
+            className={`tab ${activeTab === TABS.REGIONS ? 'active' : ''}`}
+            onClick={() => setActiveTab(TABS.REGIONS)}
+          >
+            Regions
+          </button>
       </div>
 
       {renderTabContent()}

@@ -30,7 +30,7 @@ const allowedOrigins = isDevelopment
 app.use(
   cors({
     origin: allowedOrigins,
-    methods: ['GET'],
+    methods: ['GET', 'POST'],
     credentials: true,
     optionsSuccessStatus: 200,
   }),
@@ -146,6 +146,32 @@ app.get('/api/version', (_req: express.Request, res: express.Response) => {
     version: serviceVersion,
     env: process.env.NODE_ENV || 'development',
   });
+});
+
+// Basic login endpoint with static credentials for testing/demo purposes
+// NOTE: This is NOT secure and is intended only for development/testing.
+app.post('/api/login', (req: express.Request, res: express.Response) => {
+  try {
+    const { username, password } = req.body || {};
+
+    // Static credentials for initial implementation
+    const STATIC_USER = process.env.STATIC_AUTH_USER || 'test';
+    const STATIC_PASS = process.env.STATIC_AUTH_PASS || 'test';
+
+    if (username === STATIC_USER && password === STATIC_PASS) {
+      // Return a simple token (not a real JWT) for frontend testing
+      const token = 'fake-jwt-token';
+      return res.status(200).json({
+        token,
+        user: { username: STATIC_USER },
+      });
+    }
+
+    return res.status(401).json({ error: 'Invalid credentials' });
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Routes

@@ -18,6 +18,13 @@ export class PokemonAppPage {
   private readonly suggestionsList: Locator;
   private readonly suggestionItems: Locator;
   private readonly mainContent: Locator;
+  // Auth locators
+  private readonly loginUsernameInput: Locator;
+  private readonly loginPasswordInput: Locator;
+  private readonly loginButton: Locator;
+  private readonly loginError: Locator;
+  private readonly loginStatusUser: Locator;
+  private readonly logoutButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -58,6 +65,14 @@ export class PokemonAppPage {
       .locator('[data-testid="suggestion-item"]')
       .or(page.locator('.suggestion-item, .autocomplete-item'));
     this.mainContent = page.getByRole('main').or(page.locator('main, .main-content'));
+
+    // Auth elements
+    this.loginUsernameInput = page.getByTestId('login-username');
+    this.loginPasswordInput = page.getByTestId('login-password');
+    this.loginButton = page.getByTestId('login-button');
+    this.loginError = page.getByTestId('login-error');
+    this.loginStatusUser = page.getByTestId('logged-in-user');
+    this.logoutButton = page.getByTestId('logout-button');
   }
 
   // Navigation methods
@@ -370,7 +385,36 @@ export class PokemonAppPage {
     await expect(this.searchInput).toBeVisible();
   }
 
-  async verifyErrorDisplayed(): Promise<void> {
-    await expect(this.errorMessage).toBeVisible();
+  // --- Auth helpers ---
+  async login(username: string, password: string): Promise<void> {
+    // If already logged in, logout first for clean state
+    if (await this.logoutButton.isVisible().catch(() => false)) {
+      await this.logoutButton.click();
+      await this.page.waitForTimeout(200);
+    }
+
+    await this.page.goto('/login', { waitUntil: 'networkidle' });
+    await this.page.getByTestId('login-panel').waitFor({ state: 'visible' });
+    await this.loginUsernameInput.fill(username);
+    await this.loginPasswordInput.fill(password);
+    await this.loginButton.click();
+    // On success, app redirects to root and shows tabs
+    await this.page.waitForURL('**/');
+  }
+
+  async expectLoggedIn(expectedUsername?: string): Promise<void> {
+    const status = this.page.getByTestId('login-status');
+    await expect(status).toBeVisible();
+    if (expectedUsername) {
+      await expect(this.loginStatusUser).toHaveText(new RegExp(expectedUsername, 'i'));
+    }
+    // Tabs should be visible when logged in
+    await expect(this.page.locator('.tabs')).toBeVisible();
+  }
+
+  async expectLoginError(): Promise<void> {
+    await expect(this.page.getByTestId('login-error')).toBeVisible();
+    // Tabs should not be visible when not logged in
+    await expect(this.page.locator('.tabs')).toHaveCount(0);
   }
 }
