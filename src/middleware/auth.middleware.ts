@@ -20,7 +20,7 @@ declare global {
 }
 
 class TokenValidator {
-  private publicKey: string | null = null;
+  private publicKey?: string;
   private keyFetchTime: number = 0;
   private readonly KEY_CACHE_DURATION = 3600000; // 1 hour
 
@@ -33,9 +33,9 @@ class TokenValidator {
       });
 
       if (response.data.success && response.data.data.publicKey) {
-        this.publicKey = response.data.data.publicKey;
+        this.publicKey = response.data.data.publicKey as string;
         this.keyFetchTime = Date.now();
-        return this.publicKey;
+        return response.data.data.publicKey as string;
       } else {
         throw new Error('Invalid response from auth service');
       }
@@ -47,7 +47,7 @@ class TokenValidator {
 
   private async getPublicKey(): Promise<string> {
     if (this.publicKey && Date.now() - this.keyFetchTime < this.KEY_CACHE_DURATION) {
-      return this.publicKey;
+      return this.publicKey as string;
     }
     return await this.fetchPublicKey();
   }
