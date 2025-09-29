@@ -49,9 +49,11 @@ export default function LoginPage() {
           navigate('/');
         }
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Login failed';
-      setError(errorMessage);
+    } catch (err: unknown) {
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Login failed'
+        : 'Login failed';
+      setError(errorMessage as string);
       localStorage.removeItem('authUser');
     } finally {
       setLoading(false);

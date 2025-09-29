@@ -23,7 +23,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const updateData: any = {};
+      const updateData: { email?: string; password?: string; currentPassword?: string } = {};
       if (email !== user?.email) updateData.email = email;
       if (newPassword) {
         updateData.password = newPassword;
@@ -43,8 +43,11 @@ export default function ProfilePage() {
         setNewPassword('');
         setConfirmPassword('');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update profile');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Failed to update profile'
+        : 'Failed to update profile';
+      setError(message as string);
     }
   };
 

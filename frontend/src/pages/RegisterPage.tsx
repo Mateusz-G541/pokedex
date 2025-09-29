@@ -51,9 +51,11 @@ export default function RegisterPage() {
         
         navigate('/');
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Registration failed';
-      setError(errorMessage);
+    } catch (err: unknown) {
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Registration failed'
+        : 'Registration failed';
+      setError(errorMessage as string);
     } finally {
       setLoading(false);
     }

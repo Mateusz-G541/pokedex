@@ -26,12 +26,12 @@ class TokenValidator {
 
   private async fetchPublicKey(): Promise<string> {
     const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:4000';
-    
+
     try {
       const response = await axios.get(`${authServiceUrl}/auth/public-key`, {
-        timeout: 5000
+        timeout: 5000,
       });
-      
+
       if (response.data.success && response.data.data.publicKey) {
         this.publicKey = response.data.data.publicKey;
         this.keyFetchTime = Date.now();
@@ -46,7 +46,7 @@ class TokenValidator {
   }
 
   private async getPublicKey(): Promise<string> {
-    if (this.publicKey && (Date.now() - this.keyFetchTime) < this.KEY_CACHE_DURATION) {
+    if (this.publicKey && Date.now() - this.keyFetchTime < this.KEY_CACHE_DURATION) {
       return this.publicKey;
     }
     return await this.fetchPublicKey();
@@ -55,11 +55,11 @@ class TokenValidator {
   async validateToken(token: string): Promise<JwtPayload> {
     try {
       const publicKey = await this.getPublicKey();
-      
+
       const decoded = jwt.verify(token, publicKey, {
         algorithms: ['RS256'],
         issuer: 'pokedex-auth-service',
-        audience: 'pokedex-app'
+        audience: 'pokedex-app',
       }) as JwtPayload;
 
       return decoded;
@@ -83,13 +83,13 @@ export const extractToken = (req: Request): string | null => {
   if (req.cookies?.authToken) {
     return req.cookies.authToken;
   }
-  
+
   // Fallback to Authorization header
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
-  
+
   return null;
 };
 
@@ -97,14 +97,14 @@ export const extractToken = (req: Request): string | null => {
 export const authenticateToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
-    
+
     if (!token) {
       res.status(401).json({
-        error: 'Authentication required'
+        error: 'Authentication required',
       });
       return;
     }
@@ -112,11 +112,11 @@ export const authenticateToken = async (
     const userPayload = await tokenValidator.validateToken(token);
     req.user = userPayload;
     req.token = token;
-    
+
     next();
   } catch (error) {
     res.status(401).json({
-      error: (error as Error).message
+      error: (error as Error).message,
     });
     return;
   }
@@ -126,11 +126,11 @@ export const authenticateToken = async (
 export const optionalAuth = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const token = extractToken(req);
-    
+
     if (token) {
       try {
         const userPayload = await tokenValidator.validateToken(token);
@@ -140,7 +140,7 @@ export const optionalAuth = async (
         console.warn('Optional auth failed:', (error as Error).message);
       }
     }
-    
+
     next();
   } catch (error) {
     next();
@@ -152,13 +152,13 @@ export const requireRole = (roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
-        error: 'Authentication required'
+        error: 'Authentication required',
       });
     }
 
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
-        error: 'Insufficient permissions'
+        error: 'Insufficient permissions',
       });
     }
 

@@ -41,8 +41,11 @@ export default function AdminPage() {
       if (response.data.success) {
         setUsers(response.data.data.users);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch users');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Failed to fetch users'
+        : 'Failed to fetch users';
+      setError(message as string);
     } finally {
       setLoading(false);
     }
@@ -58,8 +61,11 @@ export default function AdminPage() {
         fetchUsers();
         setFormData({ email: '', password: '', role: 'USER', isActive: true });
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create user');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Failed to create user'
+        : 'Failed to create user';
+      setError(message as string);
     }
   };
 
@@ -75,8 +81,11 @@ export default function AdminPage() {
         setEditingUser(null);
         setFormData({ email: '', password: '', role: 'USER', isActive: true });
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update user');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Failed to update user'
+        : 'Failed to update user';
+      setError(message as string);
     }
   };
 
@@ -90,8 +99,11 @@ export default function AdminPage() {
       if (response.data.success) {
         fetchUsers();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete user');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.error || 'Failed to delete user'
+        : 'Failed to delete user';
+      setError(message as string);
     }
   };
 
@@ -248,7 +260,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .admin-form {
           display: flex;
           gap: 10px;
