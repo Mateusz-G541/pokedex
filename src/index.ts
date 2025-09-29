@@ -2,11 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import pokemonRoutes from './routes/pokemon.routes';
+import authRoutes from './routes/auth.routes';
 import pkg from '../package.json';
 
 // Load environnmp ment variables based on NODE_ENV
@@ -48,6 +50,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 app.use(express.json());
+app.use(cookieParser());
 
 // Serve static images
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
@@ -177,6 +180,8 @@ app.post('/api/login', (req: express.Request, res: express.Response) => {
 // Routes
 console.log('🛣️ Loading Pokemon routes...');
 try {
+  // Routes
+  app.use('/api/auth', authRoutes);
   app.use('/api', pokemonRoutes);
   console.log('✅ Pokemon routes loaded successfully');
 } catch (error) {

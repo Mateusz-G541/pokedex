@@ -5,21 +5,28 @@ import { useNavigate, Link } from 'react-router-dom';
 const AUTH_SERVICE_URL = (import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:4000').replace(/\/+$/, '');
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
     setLoading(true);
     try {
       setError('');
       
-      // Login to auth service
-      const response = await axios.post(`${AUTH_SERVICE_URL}/auth/login`, { 
+      // Register with auth service
+      const response = await axios.post(`${AUTH_SERVICE_URL}/auth/register`, { 
         email, 
         password 
       });
@@ -35,24 +42,18 @@ export default function LoginPage() {
           withCredentials: true
         });
         
-        // Store user info in localStorage (not the token)
+        // Store user info in localStorage
         localStorage.setItem('authUser', JSON.stringify({
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role || 'USER'
         }));
         
-        // Redirect based on role
-        if (user.role === 'ADMINISTRATOR') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Login failed';
+      const errorMessage = err.response?.data?.error || 'Registration failed';
       setError(errorMessage);
-      localStorage.removeItem('authUser');
     } finally {
       setLoading(false);
     }
@@ -61,11 +62,11 @@ export default function LoginPage() {
   return (
     <div className="container" style={{ maxWidth: 480, marginTop: 40 }}>
       <h1>Pokédex</h1>
-      <div className="login-panel" data-testid="login-panel">
-        <h2>Login</h2>
-        <form className="login-form" onSubmit={handleLogin}>
+      <div className="login-panel" data-testid="register-panel">
+        <h2>Register</h2>
+        <form className="login-form" onSubmit={handleRegister}>
           <input
-            data-testid="login-username"
+            data-testid="register-email"
             type="email"
             placeholder="Email"
             value={email}
@@ -74,27 +75,37 @@ export default function LoginPage() {
             disabled={loading}
           />
           <input
-            data-testid="login-password"
+            data-testid="register-password"
             type="password"
-            placeholder="Password"
+            placeholder="Password (min 8 chars, 1 upper, 1 lower, 1 number, 1 special)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
+            minLength={8}
+          />
+          <input
+            data-testid="register-confirm-password"
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            disabled={loading}
           />
           <button 
-            data-testid="login-button" 
+            data-testid="register-button" 
             type="submit"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Creating account...' : 'Register'}
           </button>
         </form>
         {error && (
-          <div className="error" data-testid="login-error">{error}</div>
+          <div className="error" data-testid="register-error">{error}</div>
         )}
         <p className="login-hint">
-          Don't have an account? <Link to="/register">Register here</Link>
+          Already have an account? <Link to="/login">Login here</Link>
         </p>
       </div>
     </div>
