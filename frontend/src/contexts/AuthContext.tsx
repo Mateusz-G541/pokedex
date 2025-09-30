@@ -12,6 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  authServiceAvailable: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -40,9 +41,9 @@ axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
+      // Token expired or invalid - just clear local state, don't redirect
       localStorage.removeItem('authUser');
-      window.location.href = '/login';
+      // Don't redirect - let the app handle missing auth gracefully
     }
     return Promise.reject(error);
   }
@@ -51,6 +52,7 @@ axios.interceptors.response.use(
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authServiceAvailable, setAuthServiceAvailable] = useState(true);
 
   const checkAuth = async () => {
     try {
@@ -62,7 +64,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         localStorage.removeItem('authUser');
       }
-    } catch (error) {
+      setAuthServiceAvailable(true);
+    } catch (error: any) {
+      // Check if it's a network error (service unavailable) vs auth error
+      if (!error?.response) {
+        // Network error - service is down
+        setAuthServiceAvailable(false);
+      } else {
+        // Auth error - service is up but auth failed
+        setAuthServiceAvailable(true);
+      }
       setUser(null);
       localStorage.removeItem('authUser');
     } finally {
@@ -70,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (_email: string, _password: string) => {
     // This is handled by the LoginPage component
     // After successful login, checkAuth will be called
     await checkAuth();
@@ -84,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUser(null);
       localStorage.removeItem('authUser');
-      window.location.href = '/login';
+      // Don't redirect - just clear the auth state
     }
   };
 
@@ -104,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     user,
     loading,
+    authServiceAvailable,
     login,
     logout,
     checkAuth,

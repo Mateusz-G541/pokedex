@@ -10,10 +10,32 @@ import ProfilePage from './pages/ProfilePage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
 
 const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading, authServiceAvailable } = useAuth();
   
   if (loading) {
     return <div>Loading...</div>;
+  }
+  
+  // If auth service is not available, allow access to the app but show warning
+  if (!authServiceAvailable) {
+    return (
+      <>
+        {children}
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#ff6b6b',
+          color: 'white',
+          padding: '10px',
+          textAlign: 'center',
+          zIndex: 9999
+        }}>
+          ⚠️ Brak dostępu do serwisu autoryzacyjnego - niektóre funkcje mogą być niedostępne
+        </div>
+      </>
+    );
   }
   
   if (!isAuthenticated) {
@@ -28,6 +50,31 @@ const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.Re
 };
 
 const AppWithAuth = () => {
+  const PublicApp = () => {
+    const { authServiceAvailable } = useAuth();
+    
+    return (
+      <>
+        <App />
+        {!authServiceAvailable && (
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#ff6b6b',
+            color: 'white',
+            padding: '10px',
+            textAlign: 'center',
+            zIndex: 9999
+          }}>
+            ⚠️ Brak dostępu do serwisu autoryzacyjnego - niektóre funkcje mogą być niedostępne
+          </div>
+        )}
+      </>
+    );
+  };
+  
   return (
     <AuthProvider>
       <Routes>
@@ -35,11 +82,7 @@ const AppWithAuth = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route
           path="/"
-          element={
-            <ProtectedRoute>
-              <App />
-            </ProtectedRoute>
-          }
+          element={<PublicApp />}
         />
         <Route
           path="/profile"

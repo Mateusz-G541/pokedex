@@ -118,3 +118,4 @@ jspm_packages/
 tmp/
 temp/
 playwright-report/index.html
+docs/adr/master-adr.md
