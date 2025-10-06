@@ -56,21 +56,27 @@ input {
 button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  background-color: #3498db;
+  background-color: #2ecc71;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-  background-color: #2980b9;
+  background-color: #27ae60;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 button:disabled {
   background-color: #95a5a6;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .error {
@@ -390,12 +396,16 @@ button:disabled {
 }
 
 .add-to-team {
-  background-color: #2ecc71;
+  background-color: #3498db;
   margin: 1rem 0;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .add-to-team:hover {
-  background-color: #27ae60;
+  background-color: #2980b9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Responsive adjustments */
@@ -554,12 +564,16 @@ button:disabled {
 }
 
 .add-to-favorites {
-  background-color: #f1c40f;
+  background-color: #f39c12;
   margin: 0.5rem 0;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .add-to-favorites:hover {
-  background-color: #f39c12;
+  background-color: #e67e22;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 .action-buttons {
@@ -910,20 +924,23 @@ button:disabled {
 }
 
 .explore-button {
-  background-color: #3498db;
+  background-color: #e74c3c;
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
   display: block;
   width: 100%;
   font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .explore-button:hover {
-  background-color: #2980b9;
+  background-color: #c0392b;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Region Detail Styles */
@@ -1054,11 +1071,15 @@ button:disabled {
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .view-pokemon-details:hover {
   background-color: #2980b9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Gym Leaders Section */
@@ -1347,8 +1368,14 @@ button:disabled {
 
 /* Filter toggle button styles */
 .filter-toggle {
-  background-color: #3498db;
+  background-color: #9b59b6;
   padding: 0.5rem 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.filter-toggle:hover {
+  background-color: #8e44ad;
 }
 
 .filter-toggle.active {
