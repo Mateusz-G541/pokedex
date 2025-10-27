@@ -99,8 +99,26 @@ export default function RegisterPage() {
             data-testid="register-button" 
             type="submit"
             disabled={loading}
+            style={{ marginBottom: '10px' }}
           >
             {loading ? 'Creating account...' : 'Register'}
+          </button>
+          <button 
+            data-testid="guest-button"
+            type="button"
+            onClick={() => navigate('/')}
+            disabled={loading}
+            style={{ 
+              backgroundColor: '#666', 
+              color: 'white',
+              border: 'none',
+              padding: '10px',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              width: '100%'
+            }}
+          >
+            Continue as Guest
           </button>
         </form>
         {error && (

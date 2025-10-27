@@ -7,10 +7,11 @@ import { TeamView } from './components/Team';
 import { FavoritesView } from './components/Favorites';
 import { BattleView } from './components/Battle';
 import { getProxiedImageUrl } from './utils/imageProxy';
+import { useAuth } from './contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Get the API URL from environment variables, fallback to localhost for development
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
-const AUTO_LOGIN = import.meta.env.VITE_AUTO_LOGIN === 'true';
 
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
@@ -393,6 +394,10 @@ interface Region {
 }
 
 function App() {
+  // Auth context
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
@@ -407,15 +412,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>(TABS.POKEDEX);
   const [evolutionChain, setEvolutionChain] = useState<EvolutionData[]>([]);
   const [loadingEvolution, setLoadingEvolution] = useState(false);
-
-  // --- Authentication (static) ---
-  const [authToken, setAuthToken] = useState<string | null>(
-    () => localStorage.getItem('authToken')
-  );
-  const [authUser, setAuthUser] = useState<string | null>(() => localStorage.getItem('authUser'));
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
 
   // Add new state variables for team analysis and recommendations
   const [teamAnalysis, setTeamAnalysis] = useState<TypeAnalysis>({
@@ -590,43 +586,7 @@ function App() {
     }
   }, []);
 
-  // Persist auth info
-  useEffect(() => {
-    if (authToken) {
-      localStorage.setItem('authToken', authToken);
-    } else {
-      localStorage.removeItem('authToken');
-    }
-  }, [authToken]);
-
-  useEffect(() => {
-    if (authUser) {
-      localStorage.setItem('authUser', authUser);
-    } else {
-      localStorage.removeItem('authUser');
-    }
-  }, [authUser]);
-
-  // Optional auto-login for CI/E2E convenience
-  useEffect(() => {
-    const doAutoLogin = async () => {
-      if (AUTO_LOGIN && !authToken) {
-        try {
-          const response = await axios.post(`${API_URL}/api/login`, {
-            username: 'test',
-            password: 'test',
-          });
-          const { token, user } = response.data;
-          setAuthToken(token);
-          setAuthUser(user?.username || 'test');
-        } catch (e) {
-          console.warn('Auto-login failed:', e);
-        }
-      }
-    };
-    void doAutoLogin();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Note: Auth persistence is now handled by AuthContext
 
   // Save favorites to localStorage when it changes
   useEffect(() => {
@@ -864,29 +824,9 @@ function App() {
   };
 
   // --- Auth handlers ---
-  const handleLogin = async () => {
-    try {
-      setLoginError('');
-      const response = await axios.post(`${API_URL}/api/login`, {
-        username: loginUsername,
-        password: loginPassword,
-      });
-      const { token, user } = response.data;
-      setAuthToken(token);
-      setAuthUser(user?.username || loginUsername);
-      setLoginUsername('');
-      setLoginPassword('');
-    } catch (err: unknown) {
-      console.error('Login failed:', err);
-      setLoginError('Invalid credentials');
-      setAuthToken(null);
-      setAuthUser(null);
-    }
-  };
-
-  const handleLogout = () => {
-    setAuthToken(null);
-    setAuthUser(null);
+  const handleLogout = async () => {
+    await logout();
+    // Stay on the same page - guest access is allowed
   };
 
   const addToTeam = () => {
@@ -2047,16 +1987,60 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Pokédex</h1>
-
-      {/* Login status/header (ProtectedRoute ensures we are authenticated) */}
-      <div className="login-status" data-testid="login-status">
-        <span>
-          Logged in as <strong data-testid="logged-in-user">{authUser}</strong>
-        </span>
-        <button data-testid="logout-button" onClick={handleLogout} style={{ marginLeft: 12 }}>
-          Logout
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h1 style={{ margin: 0 }}>Pokédex</h1>
+        
+        {/* Auth status/buttons */}
+        <div className="auth-header" data-testid="auth-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {isAuthenticated ? (
+            <>
+              <span data-testid="user-email" style={{ marginRight: '10px' }}>
+                👤 {user?.email}
+              </span>
+              {user?.role === 'ADMINISTRATOR' && (
+                <button 
+                  onClick={() => navigate('/admin')}
+                  style={{ padding: '8px 16px', cursor: 'pointer' }}
+                >
+                  Admin Panel
+                </button>
+              )}
+              <button 
+                onClick={() => navigate('/profile')}
+                style={{ padding: '8px 16px', cursor: 'pointer' }}
+              >
+                Profile
+              </button>
+              <button 
+                data-testid="logout-button" 
+                onClick={handleLogout}
+                style={{ padding: '8px 16px', cursor: 'pointer' }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <span style={{ color: '#666', marginRight: '10px' }}>
+                🎮 Guest Mode
+              </span>
+              <button 
+                data-testid="login-button"
+                onClick={() => navigate('/login')}
+                style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}
+              >
+                Login
+              </button>
+              <button 
+                data-testid="register-button"
+                onClick={() => navigate('/register')}
+                style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px' }}
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="tabs">
