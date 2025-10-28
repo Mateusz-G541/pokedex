@@ -1,6 +1,6 @@
 {
   "name": "pokedex-api",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "Pokédex REST API built with Node.js, Express, and TypeScript",
   "main": "dist/index.js",
   "scripts": {

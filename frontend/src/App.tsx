@@ -16,6 +16,12 @@ const API_URL = (import.meta.env.VITE_API_URL || 'http://srv36.mikr.us:3000').re
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
 
+// Create a separate axios instance for external API calls (PokeAPI) without credentials
+// This avoids CORS issues when the global axios has withCredentials: true
+const externalAxios = axios.create({
+  withCredentials: false,
+});
+
 // Configure axios for better debugging
 axios.interceptors.request.use((request) => {
   console.log('Starting API Request:', request.url);
@@ -685,7 +691,7 @@ function App() {
       setPokemon(response.data);
 
       // Fetch description
-      const speciesResponse = await axios.get(response.data.species.url);
+      const speciesResponse = await externalAxios.get(response.data.species.url);
       const flavorText = speciesResponse.data.flavor_text_entries.find(
         (entry: { language: { name: string }; flavor_text: string }) =>
           entry.language.name === 'en',
@@ -708,11 +714,11 @@ function App() {
       setEvolutionChain([]);
 
       // Fetch the species data to get the evolution chain URL
-      const speciesResponse = await axios.get(speciesUrl);
+      const speciesResponse = await externalAxios.get(speciesUrl);
       const evolutionChainUrl = speciesResponse.data.evolution_chain.url;
 
       // Fetch the evolution chain
-      const evolutionResponse = await axios.get(evolutionChainUrl);
+      const evolutionResponse = await externalAxios.get(evolutionChainUrl);
       const evolutionData = evolutionResponse.data;
 
       // Process the evolution chain
@@ -738,7 +744,7 @@ function App() {
         const speciesId = chain.species.url.split('/').slice(-2, -1)[0];
 
         // Fetch the pokemon data to get the sprite
-        const pokemonResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
+        const pokemonResponse = await externalAxios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
 
         result.push({
           name: chain.species.name,
@@ -784,7 +790,7 @@ function App() {
       setPokemon(response.data);
 
       // Fetch description
-      const speciesResponse = await axios.get(response.data.species.url);
+      const speciesResponse = await externalAxios.get(response.data.species.url);
       const flavorText = speciesResponse.data.flavor_text_entries.find(
         (entry: { language: { name: string }; flavor_text: string }) =>
           entry.language.name === 'en',
@@ -912,7 +918,7 @@ function App() {
     // Fetch description for the pokemon
     const fetchDescription = async () => {
       try {
-        const speciesResponse = await axios.get(pokemon.species.url);
+        const speciesResponse = await externalAxios.get(pokemon.species.url);
         const flavorText = speciesResponse.data.flavor_text_entries.find(
           (entry: { language: { name: string }; flavor_text: string }) =>
             entry.language.name === 'en',
