@@ -2,7 +2,6 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
-const AUTH_SERVICE_URL = (import.meta.env.VITE_AUTH_SERVICE_URL || 'http://srv36.mikr.us:4000').replace(/\/+$/, '');
 const API_URL = (import.meta.env.VITE_API_URL || 'http://srv36.mikr.us:3000').replace(/\/+$/, '');
 
 export default function LoginPage() {
@@ -18,24 +17,18 @@ export default function LoginPage() {
     try {
       setError('');
       
-      // Login to auth service
-      const response = await axios.post(`${AUTH_SERVICE_URL}/auth/login`, { 
+      // Login via backend proxy (avoids mixed content issues)
+      const response = await axios.post(`${API_URL}/api/auth/login`, { 
         email, 
         password 
+      }, {
+        withCredentials: true
       });
       
       if (response.data.success) {
-        const { token, user } = response.data.data;
+        const { user } = response.data.data;
         
-        // Store token in httpOnly cookie via backend
-        await axios.post(`${API_URL}/api/auth/session`, {
-          token,
-          user
-        }, {
-          withCredentials: true
-        });
-        
-        // Store user info in localStorage (not the token)
+        // Store user info in localStorage (token is in httpOnly cookie)
         localStorage.setItem('authUser', JSON.stringify({
           id: user.id,
           email: user.email,
