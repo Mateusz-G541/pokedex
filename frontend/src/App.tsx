@@ -10,8 +10,8 @@ import { getProxiedImageUrl } from './utils/imageProxy';
 import { useAuth } from './contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-// Get the API URL from environment variables, fallback to localhost for development
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
+// Get the API URL from environment variables, fallback to VPS for production
+const API_URL = (import.meta.env.VITE_API_URL || 'http://srv36.mikr.us:3000').replace(/\/+$/, '');
 
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);

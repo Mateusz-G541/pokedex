@@ -25,7 +25,7 @@ class TokenValidator {
   private readonly KEY_CACHE_DURATION = 3600000; // 1 hour
 
   private async fetchPublicKey(): Promise<string> {
-    const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:4000';
+    const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://srv36.mikr.us:4000';
 
     try {
       const response = await axios.get(`${authServiceUrl}/auth/public-key`, {
