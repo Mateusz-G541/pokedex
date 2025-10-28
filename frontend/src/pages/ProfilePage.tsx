@@ -2,7 +2,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 import axios from 'axios';
 
-const AUTH_SERVICE_URL = (import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:4000').replace(/\/+$/, '');
+const AUTH_SERVICE_URL = (import.meta.env.VITE_AUTH_SERVICE_URL || 'http://srv36.mikr.us:4000').replace(/\/+$/, '');
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
