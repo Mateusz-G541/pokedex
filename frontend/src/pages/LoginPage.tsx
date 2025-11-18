@@ -16,25 +16,26 @@ export default function LoginPage() {
     setLoading(true);
     try {
       setError('');
-      
+
       // Login via backend proxy (avoids mixed content issues)
-      const response = await axios.post(`${API_URL}/api/auth/login`, { 
-        email, 
-        password 
+      // Backend simple-auth expects "username" field
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
+        username: email,
+        password,
       }, {
         withCredentials: true
       });
-      
+
       if (response.data.success) {
         const { user } = response.data.data;
-        
+
         // Store user info in localStorage (token is in httpOnly cookie)
         localStorage.setItem('authUser', JSON.stringify({
           id: user.id,
           email: user.email,
           role: user.role
         }));
-        
+
         // Redirect based on role
         if (user.role === 'ADMINISTRATOR') {
           navigate('/admin');
@@ -61,8 +62,8 @@ export default function LoginPage() {
         <form className="login-form" onSubmit={handleLogin}>
           <input
             data-testid="login-username"
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -77,21 +78,21 @@ export default function LoginPage() {
             required
             disabled={loading}
           />
-          <button 
-            data-testid="login-button" 
+          <button
+            data-testid="login-button"
             type="submit"
             disabled={loading}
             style={{ marginBottom: '10px' }}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
-          <button 
+          <button
             data-testid="guest-button"
             type="button"
             onClick={() => navigate('/')}
             disabled={loading}
-            style={{ 
-              backgroundColor: '#666', 
+            style={{
+              backgroundColor: '#666',
               color: 'white',
               border: 'none',
               padding: '10px',

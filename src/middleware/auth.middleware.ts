@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import axios from 'axios';
 
 interface JwtPayload {
   userId: number;
-  email: string;
+  username: string;
   role: string;
   iat?: number;
   exp?: number;
@@ -19,63 +18,29 @@ declare global {
   }
 }
 
-class TokenValidator {
-  private publicKey?: string;
-  private keyFetchTime: number = 0;
-  private readonly KEY_CACHE_DURATION = 3600000; // 1 hour
+const JWT_SECRET = process.env.JWT_SECRET || 'change-me-in-prod';
 
-  private async fetchPublicKey(): Promise<string> {
-    const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://srv36.mikr.us:4000';
-
-    try {
-      const response = await axios.get(`${authServiceUrl}/auth/public-key`, {
-        timeout: 5000,
-      });
-
-      if (response.data.success && response.data.data.publicKey) {
-        this.publicKey = response.data.data.publicKey as string;
-        this.keyFetchTime = Date.now();
-        return response.data.data.publicKey as string;
-      } else {
-        throw new Error('Invalid response from auth service');
-      }
-    } catch (error) {
-      console.error('Failed to fetch public key:', error);
-      throw new Error('Unable to fetch public key');
-    }
-  }
-
-  private async getPublicKey(): Promise<string> {
-    if (this.publicKey && Date.now() - this.keyFetchTime < this.KEY_CACHE_DURATION) {
-      return this.publicKey as string;
-    }
-    return await this.fetchPublicKey();
-  }
-
-  async validateToken(token: string): Promise<JwtPayload> {
-    try {
-      const publicKey = await this.getPublicKey();
-
-      const decoded = jwt.verify(token, publicKey, {
-        algorithms: ['RS256'],
-        issuer: 'pokedex-auth-service',
-        audience: 'pokedex-app',
-      }) as JwtPayload;
-
-      return decoded;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new Error('Token has expired');
-      } else if (error instanceof jwt.JsonWebTokenError) {
-        throw new Error('Invalid token');
-      } else {
-        throw new Error('Token validation failed');
-      }
-    }
-  }
+if (JWT_SECRET === 'change-me-in-prod') {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '⚠️ Using default JWT secret in pokedex API. Set JWT_SECRET in environment for production.',
+  );
 }
 
-const tokenValidator = new TokenValidator();
+const validateToken = (token: string): JwtPayload => {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    return decoded;
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new Error('Token has expired');
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new Error('Invalid token');
+    } else {
+      throw new Error('Token validation failed');
+    }
+  }
+};
 
 // Extract token from cookie or Authorization header
 export const extractToken = (req: Request): string | null => {
@@ -109,7 +74,7 @@ export const authenticateToken = async (
       return;
     }
 
-    const userPayload = await tokenValidator.validateToken(token);
+    const userPayload = validateToken(token);
     req.user = userPayload;
     req.token = token;
 
@@ -133,7 +98,7 @@ export const optionalAuth = async (
 
     if (token) {
       try {
-        const userPayload = await tokenValidator.validateToken(token);
+        const userPayload = validateToken(token);
         req.user = userPayload;
         req.token = token;
       } catch (error) {
@@ -166,5 +131,5 @@ export const requireRole = (roles: string[]) => {
   };
 };
 
-export const requireAdmin = requireRole(['ADMINISTRATOR']);
-export const requireUser = requireRole(['USER', 'ADMINISTRATOR']);
+export const requireAdmin = requireRole(['admin']);
+export const requireUser = requireRole(['user', 'admin']);
