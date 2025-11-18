@@ -164,10 +164,16 @@ export class PokemonService {
         return byId.data as Pokemon;
       } catch (resolveErr: unknown) {
         const resolveStatus = (resolveErr as AxiosError)?.response?.status as number | undefined;
-        if (resolveStatus === 404) {
+
+        // If official API explicitly returns 404 OR we have no HTTP status (e.g. network error
+        // in CI environment), treat this as "Pokemon not found" instead of leaking a 500.
+        if (!resolveStatus || resolveStatus === 404) {
           // Clean not-found error for controller to map to 404 without noisy stack
           throw new HttpError(404, `Pokemon ${name} not found`);
         }
+
+        // For other HTTP statuses, propagate the original error so controllers can
+        // still surface a 500 when something truly unexpected happens.
         throw resolveErr instanceof Error
           ? resolveErr
           : new Error('Failed to resolve Pokemon name');
