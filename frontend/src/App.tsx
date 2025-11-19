@@ -2012,21 +2012,42 @@ function App() {
               {user?.role === 'ADMINISTRATOR' && (
                 <button
                   onClick={() => navigate('/admin')}
-                  style={{ padding: '8px 16px', cursor: 'pointer' }}
+                  style={{
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                    backgroundColor: '#2563eb', // niebieski
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '4px',
+                  }}
                 >
                   Admin Panel
                 </button>
               )}
               <button
                 onClick={() => navigate('/profile')}
-                style={{ padding: '8px 16px', cursor: 'pointer' }}
+                style={{
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#4b5563', // ciemny szary
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                }}
               >
                 Profile
               </button>
               <button
                 data-testid="logout-button"
                 onClick={handleLogout}
-                style={{ padding: '8px 16px', cursor: 'pointer' }}
+                style={{
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#dc2626', // czerwony
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                }}
               >
                 Logout
               </button>
@@ -2039,14 +2060,28 @@ function App() {
               <button
                 data-testid="login-button"
                 onClick={() => navigate('/login')}
-                style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px' }}
+                style={{
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#22c55e', // jasna zieleń
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                }}
               >
                 Login
               </button>
               <button
                 data-testid="register-button"
                 onClick={() => navigate('/register')}
-                style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px' }}
+                style={{
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  backgroundColor: '#3b82f6', // niebieski
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                }}
               >
                 Register
               </button>
