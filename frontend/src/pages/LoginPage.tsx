@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, checkAuth } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +37,9 @@ export default function LoginPage() {
           email: user.email,
           role: user.role
         }));
+
+        // Sync AuthContext with current session (reads cookie on backend)
+        await checkAuth();
 
         // Redirect based on role from simple-auth ('admin' / 'user')
         if (user.role === 'admin') {
