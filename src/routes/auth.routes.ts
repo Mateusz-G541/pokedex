@@ -3,8 +3,8 @@ import { authenticateToken } from '../middleware/auth.middleware';
 import axios from 'axios';
 
 const router = Router();
-// Hardcoded VPS auth service URL
-const AUTH_SERVICE_URL = 'https://auth.srv36.mikr.us';
+// Hardcoded public auth service URL (simple-auth on Mikr.us)
+const AUTH_SERVICE_URL = 'https://pokedexauth.tojest.dev';
 
 // Login proxy (forwards to auth service and stores token)
 router.post('/login', async (req: Request, res: Response) => {
