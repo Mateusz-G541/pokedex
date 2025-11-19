@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_URL = (import.meta.env.VITE_API_URL || 'http://srv36.mikr.us:3000').replace(/\/+$/, '');
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +38,8 @@ export default function LoginPage() {
           role: user.role
         }));
 
-        // Redirect based on role
-        if (user.role === 'ADMINISTRATOR') {
+        // Redirect based on role from simple-auth ('admin' / 'user')
+        if (user.role === 'admin') {
           navigate('/admin');
         } else {
           navigate('/');
@@ -86,23 +88,25 @@ export default function LoginPage() {
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
-          <button
-            data-testid="guest-button"
-            type="button"
-            onClick={() => navigate('/')}
-            disabled={loading}
-            style={{
-              backgroundColor: '#666',
-              color: 'white',
-              border: 'none',
-              padding: '10px',
-              cursor: 'pointer',
-              borderRadius: '4px',
-              width: '100%'
-            }}
-          >
-            Continue as Guest
-          </button>
+          {!isAuthenticated && (
+            <button
+              data-testid="guest-button"
+              type="button"
+              onClick={() => navigate('/')}
+              disabled={loading}
+              style={{
+                backgroundColor: '#666',
+                color: 'white',
+                border: 'none',
+                padding: '10px',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                width: '100%'
+              }}
+            >
+              Continue as Guest
+            </button>
+          )}
         </form>
         {error && (
           <div className="error" data-testid="login-error">{error}</div>
