@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, checkAuth } = useAuth();
+  const { isAuthenticated, setUser } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +38,12 @@ export default function LoginPage() {
           role: user.role
         }));
 
-        // Sync AuthContext with current session (reads cookie on backend)
-        await checkAuth();
+        // Update AuthContext directly so ProtectedRoute sees authenticated user
+        setUser({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        });
 
         // Redirect based on role from simple-auth ('admin' / 'user')
         if (user.role === 'admin') {
