@@ -13,6 +13,9 @@ import { useNavigate } from 'react-router-dom';
 // Get the API URL from environment variables, fallback to VPS for production
 const API_URL = (import.meta.env.VITE_API_URL || 'http://srv36.mikr.us:3000').replace(/\/+$/, '');
 
+// Frontend version marker – update when deploying to verify latest build is live
+const APP_VERSION = 'frontend-v2025-11-19-1';
+
 // Add this console log to help debug the API URL
 console.log('API URL:', API_URL);
 
@@ -1994,7 +1997,10 @@ function App() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ margin: 0 }}>Pokédex</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 style={{ margin: 0 }}>Pokédex</h1>
+          <span style={{ fontSize: '11px', color: '#888' }}>version: {APP_VERSION}</span>
+        </div>
 
         {/* Auth status/buttons */}
         <div className="auth-header" data-testid="auth-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
